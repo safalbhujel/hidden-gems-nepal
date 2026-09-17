@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-17T13:16:00Z",
+  "title": "Design System: HiddenGems Nepal",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Sunset Orange", "canonical": "hsl(28 100% 50%)", "tonalRamp": ["hsl(28 100% 15%)", "hsl(28 100% 30%)", "hsl(28 100% 40%)", "hsl(28 100% 50%)", "hsl(28 100% 60%)", "hsl(28 100% 70%)", "hsl(28 100% 85%)", "hsl(28 100% 95%)"] },
+      "accent": { "role": "secondary", "displayName": "Glacial Cyan", "canonical": "hsl(196 100% 50%)", "tonalRamp": ["hsl(196 100% 15%)", "hsl(196 100% 30%)", "hsl(196 100% 40%)", "hsl(196 100% 50%)", "hsl(196 100% 60%)", "hsl(196 100% 70%)", "hsl(196 100% 85%)", "hsl(196 100% 95%)"] },
+      "neutral-bg": { "role": "neutral", "displayName": "Cream Background", "canonical": "hsl(60 9% 97%)", "tonalRamp": ["hsl(60 9% 10%)", "hsl(60 9% 25%)", "hsl(60 9% 40%)", "hsl(60 9% 60%)", "hsl(60 9% 80%)", "hsl(60 9% 90%)", "hsl(60 9% 97%)", "hsl(60 9% 99%)"] },
+      "neutral-fg": { "role": "neutral", "displayName": "Charcoal Text", "canonical": "hsl(0 0% 9%)", "tonalRamp": ["hsl(0 0% 5%)", "hsl(0 0% 9%)", "hsl(0 0% 20%)", "hsl(0 0% 40%)", "hsl(0 0% 60%)", "hsl(0 0% 80%)", "hsl(0 0% 90%)", "hsl(0 0% 95%)"] },
+      "muted-bg": { "role": "neutral", "displayName": "Muted Cream", "canonical": "hsl(60 5% 92%)", "tonalRamp": ["hsl(60 5% 10%)", "hsl(60 5% 25%)", "hsl(60 5% 40%)", "hsl(60 5% 60%)", "hsl(60 5% 80%)", "hsl(60 5% 92%)", "hsl(60 5% 97%)", "hsl(60 5% 99%)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero sections and major surface titles." },
+      "headline": { "displayName": "Headline", "purpose": "Section headers and card titles." },
+      "body": { "displayName": "Body", "purpose": "Main content, reviews, and descriptions." }
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Used for main calls to action like 'Submit Gem' or 'Search'.",
+      "html": "<button class=\"ds-btn-primary\">FIND PLACES</button>",
+      "css": ".ds-btn-primary { background: hsl(28 100% 50%); color: hsl(0 0% 100%); padding: 0.5rem 1rem; border-radius: 0.75rem; font-weight: 500; font-size: 0.875rem; line-height: 1.25rem; border: none; cursor: pointer; transition: opacity 0.2s, background 0.2s; outline: none; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:focus-visible { outline: 3px solid hsl(28 100% 50% / 0.5); outline-offset: 2px; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions that shouldn't compete with the primary flow.",
+      "html": "<button class=\"ds-btn-outline\">CANCEL</button>",
+      "css": ".ds-btn-outline { background: transparent; color: hsl(0 0% 9%); padding: 0.5rem 1rem; border-radius: 0.75rem; font-weight: 500; font-size: 0.875rem; line-height: 1.25rem; border: 1px solid hsl(60 5% 88%); cursor: pointer; transition: background 0.2s; outline: none; } .ds-btn-outline:hover { background: hsl(60 5% 92%); } .ds-btn-outline:focus-visible { outline: 3px solid hsl(28 100% 50% / 0.5); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text input field for searching and filtering.",
+      "html": "<input type=\"text\" class=\"ds-input\" placeholder=\"Search places...\" />",
+      "css": ".ds-input { background: hsl(0 0% 100%); color: hsl(0 0% 9%); padding: 0.5rem 0.75rem; border-radius: 0.75rem; border: 1px solid hsl(60 5% 88%); width: 100%; outline: none; transition: box-shadow 0.2s, border-color 0.2s; } .ds-input:focus-visible { border-color: hsl(28 100% 50%); box-shadow: 0 0 0 3px hsl(28 100% 50% / 0.5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Authentic Trailguide",
+    "overview": "Earthy, tactile, and restrained. It should feel like a well-crafted field journal that lets the photography and user tips shine. The design prioritizes the content over flashy UI, creating a warm, inviting, and trustworthy environment for real discovery.",
+    "keyCharacteristics": [
+      "Warm & Earthy: Colors evoke the natural landscapes of Nepal.",
+      "Restrained: The UI steps back so user-submitted photography can take the spotlight.",
+      "Physical & Clear: Interactions feel tangible and intentional, suitable for on-the-go travelers."
+    ],
+    "rules": [
+      {
+        "name": "The Content-First Rule",
+        "body": "The Sunset Orange and Glacial Cyan are used sparingly. If a screen feels overwhelmingly colorful, tone it down. Color exists to guide, not distract.",
+        "section": "colors"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces rest on the canvas. Shadows are reserved strictly for temporary overlays or sticky interactive elements that must float above content.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the Cream Background instead of pure white for the main app canvas.",
+      "Do rely on the 12px (0.75rem) border radius for all main interactive elements and cards.",
+      "Do keep the interface flat and rely on borders for component definition."
+    ],
+    "donts": [
+      "Don't use decorative shadows on static cards or images.",
+      "Don't overuse Sunset Orange. It should remain a clear indicator of action or primary focus.",
+      "Don't use highly stylized display fonts; the typography must remain highly legible for travelers reading on small screens outdoors."
+    ]
+  }
+}
