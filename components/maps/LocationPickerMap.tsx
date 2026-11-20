@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Search, Navigation, Loader2, MapPin, AlertCircle } from 'lucide-react';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal } from '@/lib/constants/maps';
+import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupDaylightSatelliteMap } from '@/lib/constants/maps';
 import { forwardGeocode, reverseGeocode, type GeocodingResult } from '@/lib/services/geocoding';
 import { Button } from '@/components/ui/button';
 
@@ -126,24 +126,7 @@ export function LocationPickerMap({
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
 
     map.on('style.load', () => {
-      if (!map.getSource('mapbox-dem')) {
-        map.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxzoom: 14,
-        });
-      }
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.35 });
-
-      map.setFog({
-        range: [0.6, 12.0],
-        color: '#120B04',
-        'high-color': '#070E1A',
-        'space-color': '#020408',
-        'horizon-blend': 0.12,
-        'star-intensity': 0.8,
-      });
+      setupDaylightSatelliteMap(map);
     });
 
     map.on('load', () => {
@@ -301,40 +284,40 @@ export function LocationPickerMap({
   };
 
   return (
-    <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-white/10 shadow-2xl ${className}`}>
+    <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border shadow-md ${className}`}>
       {/* ── Top Floating Bar: Location Search + Current Location ───────────────── */}
       <div className="absolute top-3 left-3 right-3 z-10 flex gap-2">
         {/* Search Bar */}
         <div className="relative flex-1">
           <div className="relative flex items-center">
-            <Search className="absolute left-3.5 h-4 w-4 text-neutral-400 pointer-events-none" />
+            <Search className="absolute left-3.5 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
               placeholder="Search address or landmark in Nepal…"
-              className="h-10 w-full rounded-xl border border-white/20 bg-neutral-950/85 pl-10 pr-9 text-sm text-white shadow-xl backdrop-blur-xl focus:border-[#FF8500] focus:outline-none focus:ring-2 focus:ring-[#FF8500]/30 placeholder:text-neutral-400"
+              className="h-10 w-full rounded-xl border border-border/80 bg-background/95 pl-10 pr-9 text-sm text-foreground shadow-md backdrop-blur-md focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
             />
             {isSearching && (
-              <Loader2 className="absolute right-3 h-4 w-4 animate-spin text-[#FF8500]" />
+              <Loader2 className="absolute right-3 h-4 w-4 animate-spin text-primary" />
             )}
           </div>
 
           {/* Autocomplete Dropdown */}
           {showDropdown && searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-11 max-h-60 overflow-y-auto rounded-xl border border-white/20 bg-neutral-950/95 p-1.5 text-white shadow-2xl backdrop-blur-2xl">
+            <div className="absolute left-0 right-0 top-11 max-h-60 overflow-y-auto rounded-xl border border-border bg-background/95 p-1.5 shadow-xl backdrop-blur-md">
               {searchResults.map((result) => (
                 <button
                   key={result.id}
                   type="button"
                   onClick={() => handleSelectSearchResult(result)}
-                  className="flex w-full items-start gap-2.5 rounded-lg p-2 text-left text-xs transition-colors hover:bg-white/10"
+                  className="flex w-full items-start gap-2.5 rounded-lg p-2 text-left text-xs transition-colors hover:bg-muted"
                 >
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#FF8500]" />
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                   <div>
-                    <span className="font-semibold text-white">{result.text}</span>
-                    <p className="line-clamp-1 text-[11px] text-neutral-400">
+                    <span className="font-semibold text-foreground">{result.text}</span>
+                    <p className="line-clamp-1 text-[11px] text-muted-foreground">
                       {result.placeName}
                     </p>
                   </div>
@@ -351,12 +334,12 @@ export function LocationPickerMap({
           size="sm"
           onClick={handleUseCurrentLocation}
           disabled={isLocating}
-          className="h-10 shrink-0 gap-1.5 rounded-xl border-white/20 bg-neutral-950/85 text-white shadow-xl backdrop-blur-xl hover:bg-neutral-900 hover:text-white"
+          className="h-10 shrink-0 gap-1.5 rounded-xl border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md hover:bg-background"
         >
           {isLocating ? (
-            <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
           ) : (
-            <Navigation className="h-4 w-4 text-[#FF8500]" />
+            <Navigation className="h-4 w-4 text-primary" />
           )}
           <span className="hidden sm:inline text-xs font-semibold">Near Me</span>
         </Button>
@@ -367,31 +350,31 @@ export function LocationPickerMap({
 
       {/* ── Status Alert Message if any ────────────────────────────────────────── */}
       {locationStatus && (
-        <div className="absolute top-16 left-3 right-3 z-10 flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/90 px-3 py-2 text-xs text-destructive-foreground shadow-xl backdrop-blur-md">
+        <div className="absolute top-16 left-3 right-3 z-10 flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/90 px-3 py-2 text-xs text-destructive-foreground shadow-md backdrop-blur-md">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{locationStatus}</span>
         </div>
       )}
 
       {/* ── Bottom Floating Bar: Active Coordinates & Address ──────────────────── */}
-      <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-neutral-950/90 px-3.5 py-2 text-xs text-white shadow-2xl backdrop-blur-xl">
+      <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-background/95 px-3.5 py-2 text-xs text-foreground shadow-md backdrop-blur-md">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FF8500]/20 text-[#FF8500] font-bold text-xs">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
             ✓
           </span>
           <div className="min-w-0">
-            <p className="line-clamp-1 font-medium text-white">
+            <p className="line-clamp-1 font-medium text-foreground">
               {currentAddress || 'Drop the pin on the exact location'}
             </p>
             {value && (
-              <p className="text-[10px] text-neutral-400 font-mono">
+              <p className="text-[10px] text-muted-foreground font-mono">
                 {value.lat.toFixed(5)}° N, {value.lng.toFixed(5)}° E
               </p>
             )}
           </div>
         </div>
 
-        <span className="shrink-0 text-[11px] font-medium text-neutral-400 hidden sm:inline">
+        <span className="shrink-0 text-[11px] font-medium text-muted-foreground hidden sm:inline">
           Drag pin or click map to adjust
         </span>
       </div>

@@ -13,7 +13,7 @@ import {
   Compass,
   Loader2,
 } from 'lucide-react';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal } from '@/lib/constants/maps';
+import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupDaylightSatelliteMap } from '@/lib/constants/maps';
 import type { PlaceMapPin } from '@/lib/types/places';
 import { Button } from '@/components/ui/button';
 
@@ -96,26 +96,7 @@ export function ExploreMap({
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
 
     map.on('style.load', () => {
-      // 3D Terrain: Mount Everest, Annapurna, and the Himalayas in photorealistic 3D
-      if (!map.getSource('mapbox-dem')) {
-        map.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxzoom: 14,
-        });
-      }
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.35 });
-
-      // Atmospheric starry space and golden hour horizon glow
-      map.setFog({
-        range: [0.6, 12.0],
-        color: '#120B04',
-        'high-color': '#070E1A',
-        'space-color': '#020408',
-        'horizon-blend': 0.12,
-        'star-intensity': 0.8,
-      });
+      setupDaylightSatelliteMap(map);
     });
 
     map.on('load', () => {
@@ -271,7 +252,7 @@ export function ExploreMap({
           size="sm"
           onClick={handleFindNearMe}
           disabled={isLocating}
-          className="gap-2 rounded-xl border border-white/20 bg-neutral-950/80 text-white shadow-xl backdrop-blur-xl hover:bg-neutral-900 hover:text-white"
+          className="gap-2 rounded-xl border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md hover:bg-background"
         >
           {isLocating ? (
             <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
@@ -281,8 +262,8 @@ export function ExploreMap({
           <span className="text-xs font-semibold">Gems Near Me</span>
         </Button>
 
-        <div className="rounded-xl border border-white/15 bg-neutral-950/80 px-3.5 py-1.5 text-xs font-medium text-neutral-300 shadow-xl backdrop-blur-xl">
-          <span className="text-[#FF8500] font-bold">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'} in 3D
+        <div className="rounded-xl border border-border/80 bg-background/95 px-3.5 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur-md">
+          <span className="text-[#FF8500] font-bold">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'} on map
         </div>
       </div>
 
@@ -292,18 +273,18 @@ export function ExploreMap({
       {/* ── Instagram / Snapchat Style Floating Place Card ───────────────── */}
       {activePlace && (
         <div className="absolute bottom-4 left-4 right-4 z-20 sm:left-auto sm:right-4 sm:w-[400px] animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="relative flex gap-3.5 overflow-hidden rounded-2xl border border-white/20 bg-neutral-950/90 p-3.5 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
+          <div className="relative flex gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-background/95 p-3.5 text-foreground shadow-2xl backdrop-blur-xl">
             {/* Close Button */}
             <button
               type="button"
               onClick={() => handleSelectPlace(null)}
-              className="absolute right-2.5 top-2.5 z-10 rounded-full bg-white/10 p-1 text-neutral-400 hover:bg-white/20 hover:text-white transition-colors"
+              className="absolute right-2.5 top-2.5 z-10 rounded-full bg-muted/80 p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
 
             {/* Thumbnail */}
-            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-neutral-900 border border-white/10">
+            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted border border-border/60">
               {activePlace.cover_image_url ? (
                 <Image
                   src={activePlace.cover_image_url}
@@ -318,7 +299,7 @@ export function ExploreMap({
                 </div>
               )}
               {/* Hidden Score Badge */}
-              <div className="absolute bottom-1.5 left-1.5 rounded-md bg-black/85 px-1.5 py-0.5 text-[10px] font-extrabold text-[#FF8500] border border-[#FF8500]/30 backdrop-blur-xs">
+              <div className="absolute bottom-1.5 left-1.5 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-extrabold text-[#FF8500] border border-[#FF8500]/40 backdrop-blur-xs">
                 💎 {activePlace.hidden_score.toFixed(1)}
               </div>
             </div>
@@ -333,24 +314,24 @@ export function ExploreMap({
                     </span>
                   )}
                   {activePlace.category && (
-                    <span className="text-[10px] text-neutral-400">• {activePlace.category.name}</span>
+                    <span className="text-[10px] text-muted-foreground">• {activePlace.category.name}</span>
                   )}
                 </div>
-                <h4 className="line-clamp-1 text-sm font-bold text-white tracking-tight">
+                <h4 className="line-clamp-1 text-sm font-bold text-foreground tracking-tight">
                   {activePlace.name}
                 </h4>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
-                <div className="flex items-center gap-1 text-xs text-amber-400 font-semibold">
-                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              <div className="flex items-center justify-between pt-2 border-t border-border/60 mt-2">
+                <div className="flex items-center gap-1 text-xs text-amber-500 font-semibold">
+                  <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                   <span>{activePlace.average_rating > 0 ? activePlace.average_rating.toFixed(1) : 'New'}</span>
-                  <span className="text-[10px] text-neutral-400">({activePlace.review_count})</span>
+                  <span className="text-[10px] text-muted-foreground">({activePlace.review_count})</span>
                 </div>
 
                 <Link
                   href={`/places/${activePlace.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#FF8500] to-[#E65100] px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_14px_rgba(255,133,0,0.4)] hover:brightness-110 active:scale-95 transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF8500] hover:bg-[#e07500] px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,133,0,0.35)] transition-all"
                 >
                   <span>Explore</span>
                   <ExternalLink className="h-3 w-3" />

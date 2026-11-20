@@ -36,12 +36,12 @@
     "exaggeration": 1.35
   },
   "fog": {
-    "range": [0.6, 12.0],
-    "color": "#120B04",
-    "high-color": "#070E1A",
-    "space-color": "#020408",
-    "horizon-blend": 0.12,
-    "star-intensity": 0.8
+    "range": [1.0, 20.0],
+    "color": "#F4F9FD",
+    "high-color": "#60B8E8",
+    "space-color": "#2C88CA",
+    "horizon-blend": 0.08,
+    "star-intensity": 0.0
   },
   "sprite": "mapbox://sprites/mapbox/satellite-streets-v12",
   "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
@@ -91,16 +91,40 @@
       }
     },
     {
-      "id": "admin-boundaries-glow",
+      "id": "nepal-border-casing",
       "type": "line",
       "source": "composite",
       "source-layer": "admin",
-      "filter": ["<=", "admin_level", 4],
+      "filter": ["==", "admin_level", 2],
       "paint": {
-        "line-color": "#FF9F2E",
-        "line-opacity": 0.4,
-        "line-width": 1.2,
-        "line-dasharray": [3, 2]
+        "line-color": "#FFFFFF",
+        "line-width": 5.5,
+        "line-opacity": 0.85
+      }
+    },
+    {
+      "id": "nepal-national-border",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "admin",
+      "filter": ["==", "admin_level", 2],
+      "paint": {
+        "line-color": "#FF8500",
+        "line-width": 3.8,
+        "line-opacity": 0.95
+      }
+    },
+    {
+      "id": "nepal-province-district-border",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "admin",
+      "filter": ["in", "admin_level", 3, 4, 5, 6],
+      "paint": {
+        "line-color": "#FFA23A",
+        "line-width": 2.0,
+        "line-dasharray": [3, 2],
+        "line-opacity": 0.85
       }
     },
     {

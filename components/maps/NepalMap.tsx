@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG } from '@/lib/constants/maps';
+import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, setupDaylightSatelliteMap } from '@/lib/constants/maps';
 
 export interface NepalMapProps {
   className?: string;
@@ -55,24 +55,7 @@ export function NepalMap({
     }
 
     map.on('style.load', () => {
-      if (!map.getSource('mapbox-dem')) {
-        map.addSource('mapbox-dem', {
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          tileSize: 512,
-          maxzoom: 14,
-        });
-      }
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.35 });
-
-      map.setFog({
-        range: [0.6, 12.0],
-        color: '#120B04',
-        'high-color': '#070E1A',
-        'space-color': '#020408',
-        'horizon-blend': 0.12,
-        'star-intensity': 0.8,
-      });
+      setupDaylightSatelliteMap(map);
     });
 
     map.on('load', () => {
