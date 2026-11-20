@@ -123,12 +123,14 @@ export function SmartSearchBar({ placeholder = 'Search hidden cafes, waterfalls,
         <input
           ref={inputRef}
           type="search"
+          role="combobox"
           autoComplete="off"
           spellCheck={false}
           value={query}
           placeholder={placeholder}
           aria-label="Search places"
           aria-expanded={open}
+          aria-controls="search-suggestions-dropdown"
           className="w-full pl-12 pr-32 h-14 text-base rounded-full border-2 border-border bg-background focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground transition-colors"
           onChange={(e) => { setQuery(e.target.value); setOpen(true); setActiveIdx(-1) }}
           onFocus={() => setOpen(true)}
@@ -145,7 +147,7 @@ export function SmartSearchBar({ placeholder = 'Search hidden cafes, waterfalls,
       </div>
 
       {(showSuggestions || showTrending) && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50">
+        <div id="search-suggestions-dropdown" className="absolute top-full left-0 right-0 mt-2 z-50">
           {/*
             Dropdown is a floating popover — one of the two permitted uses of
             elevation per the Flat-By-Default rule. Uses border + bg-background

@@ -12,8 +12,19 @@ import {
   X,
   Compass,
   Loader2,
+  Mountain,
+  Layers,
+  Maximize2,
+  Gem,
 } from 'lucide-react';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupDaylightSatelliteMap } from '@/lib/constants/maps';
+import {
+  NEPAL_BOUNDS,
+  NEPAL_CENTER,
+  MAP_CONFIG,
+  CAMERA_PRESETS,
+  isWithinNepal,
+  setupEnhancedMap,
+} from '@/lib/constants/maps';
 import type { PlaceMapPin } from '@/lib/types/places';
 import { Button } from '@/components/ui/button';
 
@@ -26,7 +37,7 @@ interface ExploreMapProps {
 
 export function ExploreMap({
   places,
-  className = 'h-[600px] w-full',
+  className = 'h-[620px] w-full',
   selectedPlaceSlug,
   onSelectPlace,
 }: ExploreMapProps) {
@@ -36,6 +47,8 @@ export function ExploreMap({
 
   const [clickedPlace, setClickedPlace] = useState<PlaceMapPin | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [activePreset, setActivePreset] = useState<'overview' | 'cinematic' | 'mountain'>('overview');
+  const [activeLayer, setActiveLayer] = useState<'outdoors' | 'satellite'>('satellite');
 
   const activePlace = selectedPlaceSlug
     ? places.find((p) => p.slug === selectedPlaceSlug) ?? clickedPlace
@@ -64,7 +77,7 @@ export function ExploreMap({
         mapRef.current.easeTo({
           center: [place.longitude, place.latitude],
           zoom: Math.max(mapRef.current.getZoom(), 12),
-          duration: 800,
+          duration: MAP_CONFIG.animation.easeDuration,
         });
       }
     },
@@ -88,15 +101,18 @@ export function ExploreMap({
       minZoom: MAP_CONFIG.minZoom,
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: NEPAL_BOUNDS,
-      pitch: MAP_CONFIG.defaultPitch,
-      bearing: MAP_CONFIG.defaultBearing,
+      pitch: MAP_CONFIG.camera.pitch,
+      bearing: MAP_CONFIG.camera.bearing,
       attributionControl: false,
     });
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
+    map.addControl(
+      new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }),
+      'top-right'
+    );
 
     map.on('style.load', () => {
-      setupDaylightSatelliteMap(map);
+      setupEnhancedMap(map);
     });
 
     map.on('load', () => {
@@ -111,9 +127,10 @@ export function ExploreMap({
       }
     });
 
+    const currentMarkers = markersRef.current;
     return () => {
-      markersRef.current.forEach((m) => m.remove());
-      markersRef.current.clear();
+      currentMarkers.forEach((m) => m.remove());
+      currentMarkers.clear();
       map.remove();
       mapRef.current = null;
     };
@@ -136,19 +153,20 @@ export function ExploreMap({
     places.forEach((place) => {
       if (markersRef.current.has(place.id)) return;
 
-      // Luxury Snapchat/Instagram style 3D marker
+      // Custom marker container matching Authentic Trailguide & Anti-Emoji rules
       const el = document.createElement('div');
-      el.className = 'custom-marker-node cursor-pointer group transition-transform duration-300 hover:scale-125 active:scale-95';
+      el.className =
+        'custom-marker-node cursor-pointer group transition-transform duration-300 hover:scale-120 active:scale-[0.98]';
       el.innerHTML = `
         <div style="position: relative; display: flex; align-items: center; justify-content: center;">
           <!-- Ambient Luminous Orange Pulse Ring -->
           <div style="
             position: absolute;
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 9999px;
-            background: rgba(255, 133, 0, 0.4);
-            animation: ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+            background: rgba(255, 133, 0, 0.35);
+            animation: ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
           "></div>
 
           <!-- Glassmorphic Acrylic Pin Badge -->
@@ -156,21 +174,24 @@ export function ExploreMap({
             position: relative;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4.5px;
             background: linear-gradient(135deg, #FF8500 0%, #E65100 100%);
             color: #FFFFFF;
-            padding: 5px 10px;
+            padding: 4px 9px;
             border-radius: 9999px;
             font-family: inherit;
             font-weight: 800;
             font-size: 11px;
-            box-shadow: 0 6px 20px rgba(255, 133, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.7);
+            letter-spacing: 0.02em;
+            box-shadow: 0 6px 18px rgba(255, 133, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.5);
             border: 1.5px solid rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(8px);
             transition: all 0.2s ease;
           ">
-            <span style="font-size: 11px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));">💎</span>
-            <span style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">${place.hidden_score.toFixed(1)}</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+              <path d="M6 3h12l4 6-10 13L2 9z"/>
+            </svg>
+            <span style="text-shadow: 0 1px 2px rgba(0,0,0,0.4);">${place.hidden_score.toFixed(1)}</span>
             <div style="
               position: absolute;
               bottom: -5px;
@@ -201,14 +222,11 @@ export function ExploreMap({
       markersRef.current.set(place.id, marker);
     });
 
-    // If there are places, optionally fit bounds to visible places
-    if (places.length > 0 && map) {
+    // Auto-fit if places exist
+    if (places.length > 1 && map) {
       const bounds = new mapboxgl.LngLatBounds();
       places.forEach((p) => bounds.extend([p.longitude, p.latitude]));
-      // Only fit bounds if multiple places exist
-      if (places.length > 1) {
-        map.fitBounds(bounds, { padding: 80, maxZoom: 13, duration: 1000 });
-      }
+      map.fitBounds(bounds, { padding: 80, maxZoom: 13, duration: 1000 });
     }
   }, [places, handleSelectPlace]);
 
@@ -230,7 +248,7 @@ export function ExploreMap({
         mapRef.current?.flyTo({
           center: [longitude, latitude],
           zoom: 13,
-          duration: 1500,
+          speed: MAP_CONFIG.animation.flyToSpeed,
           essential: true,
         });
       },
@@ -242,38 +260,137 @@ export function ExploreMap({
     );
   };
 
+  // Camera Presets Controller
+  const handleCameraPreset = (presetKey: 'overview' | 'cinematic' | 'mountain') => {
+    if (!mapRef.current) return;
+    setActivePreset(presetKey);
+    const preset = CAMERA_PRESETS[presetKey];
+
+    mapRef.current.flyTo({
+      center: preset.center,
+      zoom: preset.zoom,
+      pitch: preset.pitch,
+      bearing: preset.bearing,
+      speed: MAP_CONFIG.animation.flyToSpeed,
+      essential: true,
+    });
+  };
+
+  // Layer Style Switcher
+  const handleToggleLayer = (layer: 'outdoors' | 'satellite') => {
+    if (!mapRef.current || layer === activeLayer) return;
+    setActiveLayer(layer);
+    const styleUrl = layer === 'satellite' ? MAP_CONFIG.satelliteStyle : MAP_CONFIG.outdoorsStyle;
+    mapRef.current.setStyle(styleUrl);
+  };
+
   return (
     <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border bg-muted/20 ${className}`}>
-      {/* ── Top Controls ─────────────────────────────────────────────────── */}
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+      {/* ── Top Left Controls: Near Me + Gem Counter ────────────────────────── */}
+      <div className="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={handleFindNearMe}
           disabled={isLocating}
-          className="gap-2 rounded-xl border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md hover:bg-background"
+          className="gap-2 rounded-xl border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md active:scale-[0.98] transition-transform hover:bg-background"
         >
           {isLocating ? (
             <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
           ) : (
             <Navigation className="h-4 w-4 text-[#FF8500]" />
           )}
-          <span className="text-xs font-semibold">Gems Near Me</span>
+          <span className="text-xs font-semibold">Near Me</span>
         </Button>
 
-        <div className="rounded-xl border border-border/80 bg-background/95 px-3.5 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur-md">
+        <div className="rounded-xl border border-border/80 bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur-md">
           <span className="text-[#FF8500] font-bold">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'} on map
         </div>
       </div>
 
-      {/* ── Map Container ────────────────────────────────────────────────── */}
+      {/* ── Top Right Controls: Camera Presets & Layer Switcher ──────────────── */}
+      <div className="absolute top-3 right-14 z-10 hidden sm:flex items-center gap-2">
+        {/* Camera Views */}
+        <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-1 shadow-md backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => handleCameraPreset('overview')}
+            title="Full Flat Overview"
+            className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              activePreset === 'overview'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Maximize2 className="h-3 w-3" />
+            <span>Flat</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCameraPreset('cinematic')}
+            title="3D Cinematic Slant"
+            className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              activePreset === 'cinematic'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Compass className="h-3 w-3" />
+            <span>3D Tilt</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCameraPreset('mountain')}
+            title="High Himalayas Dramatic View"
+            className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              activePreset === 'mountain'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Mountain className="h-3 w-3" />
+            <span>Himalayas</span>
+          </button>
+        </div>
+
+        {/* Style Layer Toggle (Outdoors vs Satellite) */}
+        <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-1 shadow-md backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => handleToggleLayer('outdoors')}
+            className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              activeLayer === 'outdoors'
+                ? 'bg-foreground text-background shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Layers className="h-3 w-3" />
+            <span>Terrain</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleToggleLayer('satellite')}
+            className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              activeLayer === 'satellite'
+                ? 'bg-foreground text-background shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <span>Satellite</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Map Container ────────────────────────────────────────────────────── */}
       <div ref={mapContainerRef} className="h-full w-full" />
 
-      {/* ── Instagram / Snapchat Style Floating Place Card ───────────────── */}
+      {/* ── Instagram / Story Style Floating Place Card ──────────────────────── */}
       {activePlace && (
-        <div className="absolute bottom-4 left-4 right-4 z-20 sm:left-auto sm:right-4 sm:w-[400px] animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="relative flex gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-background/95 p-3.5 text-foreground shadow-2xl backdrop-blur-xl">
+        <div className="absolute bottom-4 left-4 right-4 z-20 sm:left-auto sm:right-4 sm:w-[380px] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="relative flex gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-background/95 p-3.5 text-foreground shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] backdrop-blur-xl">
             {/* Close Button */}
             <button
               type="button"
@@ -299,8 +416,9 @@ export function ExploreMap({
                 </div>
               )}
               {/* Hidden Score Badge */}
-              <div className="absolute bottom-1.5 left-1.5 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-extrabold text-[#FF8500] border border-[#FF8500]/40 backdrop-blur-xs">
-                💎 {activePlace.hidden_score.toFixed(1)}
+              <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-md bg-black/80 px-1.5 py-0.5 text-[10px] font-extrabold text-[#FF8500] border border-[#FF8500]/40 backdrop-blur-xs">
+                <Gem className="h-2.5 w-2.5" />
+                <span>{activePlace.hidden_score.toFixed(1)}</span>
               </div>
             </div>
 
@@ -331,7 +449,7 @@ export function ExploreMap({
 
                 <Link
                   href={`/places/${activePlace.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF8500] hover:bg-[#e07500] px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,133,0,0.35)] transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF8500] hover:bg-[#e07500] px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,133,0,0.3)] active:scale-[0.98] transition-all"
                 >
                   <span>Explore</span>
                   <ExternalLink className="h-3 w-3" />

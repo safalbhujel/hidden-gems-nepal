@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, setupDaylightSatelliteMap } from '@/lib/constants/maps';
+import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, setupEnhancedMap } from '@/lib/constants/maps';
 
 export interface NepalMapProps {
   className?: string;
@@ -44,8 +44,8 @@ export function NepalMap({
       minZoom: MAP_CONFIG.minZoom,
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: NEPAL_BOUNDS,
-      pitch: MAP_CONFIG.defaultPitch,
-      bearing: MAP_CONFIG.defaultBearing,
+      pitch: MAP_CONFIG.camera.pitch,
+      bearing: MAP_CONFIG.camera.bearing,
       interactive,
       attributionControl: false,
     });
@@ -55,7 +55,7 @@ export function NepalMap({
     }
 
     map.on('style.load', () => {
-      setupDaylightSatelliteMap(map);
+      setupEnhancedMap(map);
     });
 
     map.on('load', () => {
@@ -67,7 +67,9 @@ export function NepalMap({
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, []); // Run once on mount
+    // Map instance is mounted once per container lifecycle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-border bg-muted/20 ${className}`}>

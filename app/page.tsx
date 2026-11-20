@@ -1,13 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  MapPin,
-  Star,
   ArrowRight,
   Mountain,
-  Coffee,
-  Tent,
-  Camera,
   Flame,
   ChevronRight,
 } from 'lucide-react'
@@ -23,13 +18,6 @@ export const metadata = {
   title: 'HiddenGems Nepal — Discover the Nepal Everyone Misses',
   description:
     'Discover hidden waterfalls, local cafes, secret viewpoints, and authentic experiences across all 77 districts of Nepal — curated by people who actually live there.',
-}
-
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  mountain: Mountain,
-  coffee: Coffee,
-  tent: Tent,
-  camera: Camera,
 }
 
 // Authentic Trailguide palette: border-accented chips, no coloured backgrounds.
@@ -103,7 +91,7 @@ export default async function HomePage() {
         <div className="container mx-auto max-w-7xl px-4">
           <h2 className="text-2xl font-bold mb-6">What&apos;s your vibe?</h2>
           <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x">
-            {(categories.length > 0 ? categories : []).map((cat, i) => {
+            {(categories.length > 0 ? categories : []).map((cat) => {
               const IconComponent = Mountain // Default fallback icon
               return (
                 <Link

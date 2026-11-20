@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Search, Navigation, Loader2, MapPin, AlertCircle } from 'lucide-react';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupDaylightSatelliteMap } from '@/lib/constants/maps';
+import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupEnhancedMap } from '@/lib/constants/maps';
 import { forwardGeocode, reverseGeocode, type GeocodingResult } from '@/lib/services/geocoding';
 import { Button } from '@/components/ui/button';
 
@@ -39,6 +39,7 @@ export function LocationPickerMap({
   // Callbacks in refs to avoid recreating map listeners
   const onChangeRef = useRef(onChange);
   const onLocationDetailsRef = useRef(onLocationDetails);
+  const initialValueRef = useRef(value);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -108,14 +109,14 @@ export function LocationPickerMap({
 
     mapboxgl.accessToken = token;
 
-    const initialLng = value?.lng ?? NEPAL_CENTER[0];
-    const initialLat = value?.lat ?? NEPAL_CENTER[1];
+    const initialLng = initialValueRef.current?.lng ?? NEPAL_CENTER[0];
+    const initialLat = initialValueRef.current?.lat ?? NEPAL_CENTER[1];
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: MAP_CONFIG.style,
       center: [initialLng, initialLat],
-      zoom: value ? 14 : MAP_CONFIG.defaultZoom,
+      zoom: initialValueRef.current ? 14 : MAP_CONFIG.defaultZoom,
       minZoom: MAP_CONFIG.minZoom,
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: NEPAL_BOUNDS,
@@ -126,7 +127,7 @@ export function LocationPickerMap({
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
 
     map.on('style.load', () => {
-      setupDaylightSatelliteMap(map);
+      setupEnhancedMap(map);
     });
 
     map.on('load', () => {
@@ -182,7 +183,7 @@ export function LocationPickerMap({
       });
 
       // Initial reverse geocode if value was provided
-      if (value) {
+      if (initialValueRef.current) {
         handleReverseGeocode(initialLng, initialLat);
       }
     });

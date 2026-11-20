@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Star, Lock, ArrowRight, Sparkles } from 'lucide-react'
+import { MapPin, Star, Lock, Sparkles } from 'lucide-react'
 import type { PlaceCardData, SortOption } from '@/lib/types/places'
 
 interface FeaturedGemsClientProps {
