@@ -80,6 +80,30 @@ export interface PlaceCardData {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PlaceMapPin — data shape for interactive Mapbox pins
+// ─────────────────────────────────────────────────────────────────────────────
+export interface PlaceMapPin {
+  id: string
+  slug: string
+  name: string
+  latitude: number
+  longitude: number
+  hidden_score: number
+  average_rating: number
+  review_count: number
+  cover_image_url: string | null
+  category: {
+    name: string
+    icon: string | null
+    slug: string
+  } | null
+  district: {
+    name: string
+    slug: string
+  } | null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Place — full data shape used on the /places/[slug] details page.
 // ─────────────────────────────────────────────────────────────────────────────
 export interface Place {

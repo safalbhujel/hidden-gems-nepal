@@ -5,6 +5,7 @@ import type {
   GetPlacesOptions,
   Place,
   PlaceCardData,
+  PlaceMapPin,
   SortOption,
 } from '@/lib/types/places'
 
@@ -202,6 +203,91 @@ export async function getPlaceBySlug(slug: string): Promise<Place | null> {
     place_tags: data.place_tags ?? [],
     reviews: data.reviews ?? [],
   } as unknown as Place
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getPlacesForMap
+// Fetches approved places with valid latitude/longitude coordinates for Mapbox.
+// ─────────────────────────────────────────────────────────────────────────────
+export async function getPlacesForMap(
+  options: GetPlacesOptions = {}
+): Promise<PlaceMapPin[]> {
+  const { categorySlug, districtSlug, search } = options
+  const supabase = await createSupabaseServerClient()
+
+  let query = supabase
+    .from('places')
+    .select(
+      `
+      id,
+      slug,
+      name,
+      latitude,
+      longitude,
+      hidden_score,
+      average_rating,
+      review_count,
+      categories ( name, icon, slug ),
+      districts ( name, slug ),
+      place_images ( image_url, sort_order )
+    `
+    )
+    .eq('status', 'APPROVED')
+    .not('latitude', 'is', null)
+    .not('longitude', 'is', null)
+
+  if (search && search.trim().length > 0) {
+    const term = search.trim()
+    query = query.or(`name.ilike.%${term}%,description.ilike.%${term}%`)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('[getPlacesForMap] Supabase error:', error.message)
+    return []
+  }
+
+  let rows = data ?? []
+
+  if (categorySlug) {
+    rows = rows.filter((row) => {
+      const cat = Array.isArray(row.categories) ? row.categories[0] : row.categories
+      return cat?.slug === categorySlug
+    })
+  }
+
+  if (districtSlug) {
+    rows = rows.filter((row) => {
+      const dist = Array.isArray(row.districts) ? row.districts[0] : row.districts
+      return dist?.slug === districtSlug
+    })
+  }
+
+  return rows.map((row) => {
+    const sortedImages = [...(row.place_images ?? [])].sort(
+      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    )
+
+    const category = Array.isArray(row.categories) ? row.categories[0] : row.categories
+    const district = Array.isArray(row.districts) ? row.districts[0] : row.districts
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      latitude: Number(row.latitude),
+      longitude: Number(row.longitude),
+      hidden_score: row.hidden_score ?? 0,
+      average_rating: row.average_rating ?? 0,
+      review_count: row.review_count ?? 0,
+      cover_image_url: sortedImages[0]?.image_url ?? null,
+      category: category
+        ? { name: category.name, icon: category.icon ?? null, slug: category.slug }
+        : null,
+      district: district ? { name: district.name, slug: district.slug } : null,
+    } satisfies PlaceMapPin
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

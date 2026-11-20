@@ -1,7 +1,8 @@
 import { Suspense } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
-import { getPlacesForCards, getCategories, getDistricts } from '@/lib/queries/places'
-import { PlaceCard, PlaceCardSkeleton } from '@/components/places/PlaceCard'
+import { getPlacesForCards, getPlacesForMap, getCategories, getDistricts } from '@/lib/queries/places'
+import { PlaceCardSkeleton } from '@/components/places/PlaceCard'
+import { ExploreViewSwitcher } from '@/components/places/ExploreViewSwitcher'
 import type { SortOption } from '@/lib/types/places'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,33 +63,22 @@ async function PlacesResults({
   districtSlug?: string
   sort: SortOption
 }) {
-  const places = await getPlacesForCards({
-    search,
-    categorySlug,
-    districtSlug,
-    sort,
-    limit: 20,
-  })
+  const [places, mapPins] = await Promise.all([
+    getPlacesForCards({
+      search,
+      categorySlug,
+      districtSlug,
+      sort,
+      limit: 24,
+    }),
+    getPlacesForMap({
+      search,
+      categorySlug,
+      districtSlug,
+    }),
+  ])
 
-  if (places.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <Search className="h-16 w-16 mb-6 text-muted-foreground/30" aria-hidden="true" />
-        <h3 className="text-xl font-bold mb-2">No places found</h3>
-        <p className="text-muted-foreground max-w-sm">
-          Try adjusting your search or filters. New hidden gems are added every week.
-        </p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {places.map((place) => (
-        <PlaceCard key={place.slug} place={place} />
-      ))}
-    </div>
-  )
+  return <ExploreViewSwitcher places={places} mapPins={mapPins} />
 }
 
 export default async function ExplorePage({ searchParams }: ExplorePageProps) {

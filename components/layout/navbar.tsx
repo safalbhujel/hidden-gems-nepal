@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu, Compass, MapPin } from 'lucide-react'
+import { Menu, Compass, MapPin, PlusCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Compass },
   { href: '/explore', label: 'Explore', icon: MapPin },
+  { href: '/submit', label: 'Submit Gem', icon: PlusCircle },
 ]
 
 export function Navbar() {
@@ -108,6 +109,9 @@ export function Navbar() {
               </Link>
               <Link href="/explore" className="flex items-center gap-3 text-lg font-semibold hover:text-primary transition-colors">
                 <MapPin className="h-5 w-5 text-primary" /> Explore
+              </Link>
+              <Link href="/submit" className="flex items-center gap-3 text-lg font-semibold hover:text-primary transition-colors">
+                <PlusCircle className="h-5 w-5 text-primary" /> Submit Gem
               </Link>
               <div className="h-px bg-border" />
               <Link href="/login">
