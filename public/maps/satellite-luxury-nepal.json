@@ -115,19 +115,6 @@
       }
     },
     {
-      "id": "nepal-province-district-border",
-      "type": "line",
-      "source": "composite",
-      "source-layer": "admin",
-      "filter": ["in", "admin_level", 3, 4, 5, 6],
-      "paint": {
-        "line-color": "#FFA23A",
-        "line-width": 2.0,
-        "line-dasharray": [3, 2],
-        "line-opacity": 0.85
-      }
-    },
-    {
       "id": "luxury-roads-minor",
       "type": "line",
       "source": "composite",

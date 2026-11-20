@@ -52,56 +52,40 @@ export function setupDaylightSatelliteMap(map: mapboxgl.Map) {
     'star-intensity': 0.0, // Full daylight sunshine
   });
 
-  // 3. Bold Nepal Borders styled to the #FF8500 brand theme
-  if (map.getSource('composite')) {
-    // Outer white casing: ensures the border pops against dark forests and glaciers
-    if (!map.getLayer('nepal-border-casing')) {
-      map.addLayer({
-        id: 'nepal-border-casing',
-        type: 'line',
-        source: 'composite',
-        'source-layer': 'admin',
-        filter: ['==', 'admin_level', 2],
-        paint: {
-          'line-color': '#FFFFFF',
-          'line-width': 5.5,
-          'line-opacity': 0.85,
-        },
-      });
-    }
+  // 3. Exact sovereign outer border of Nepal only (surrounds Nepal touching India & China; all internal/other borders stay default clean)
+  if (!map.getSource('nepal-outer-boundary')) {
+    map.addSource('nepal-outer-boundary', {
+      type: 'geojson',
+      data: '/maps/nepal-boundary.geojson',
+    });
+  }
 
-    // Thick Nepal National Border in Sunset Orange (#FF8500)
-    if (!map.getLayer('nepal-national-border')) {
-      map.addLayer({
-        id: 'nepal-national-border',
-        type: 'line',
-        source: 'composite',
-        'source-layer': 'admin',
-        filter: ['==', 'admin_level', 2],
-        paint: {
-          'line-color': '#FF8500',
-          'line-width': 3.8,
-          'line-opacity': 0.95,
-        },
-      });
-    }
+  // Outer white casing: ensures the border pops against dark forests and glaciers
+  if (!map.getLayer('nepal-border-casing')) {
+    map.addLayer({
+      id: 'nepal-border-casing',
+      type: 'line',
+      source: 'nepal-outer-boundary',
+      paint: {
+        'line-color': '#FFFFFF',
+        'line-width': 5.5,
+        'line-opacity': 0.85,
+      },
+    });
+  }
 
-    // Province and District Boundaries (Warm Amber #FFA23A, bold & visible)
-    if (!map.getLayer('nepal-province-district-border')) {
-      map.addLayer({
-        id: 'nepal-province-district-border',
-        type: 'line',
-        source: 'composite',
-        'source-layer': 'admin',
-        filter: ['in', 'admin_level', 3, 4, 5, 6],
-        paint: {
-          'line-color': '#FFA23A',
-          'line-width': 2.0,
-          'line-dasharray': [3, 2],
-          'line-opacity': 0.85,
-        },
-      });
-    }
+  // Thick Nepal Outer Border in Sunset Orange (#FF8500)
+  if (!map.getLayer('nepal-national-border')) {
+    map.addLayer({
+      id: 'nepal-national-border',
+      type: 'line',
+      source: 'nepal-outer-boundary',
+      paint: {
+        'line-color': '#FF8500',
+        'line-width': 3.8,
+        'line-opacity': 0.95,
+      },
+    });
   }
 }
 
