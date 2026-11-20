@@ -1,0 +1,234 @@
+{
+  "version": 8,
+  "name": "HiddenGems Nepal — Luxury Satellite 3D",
+  "metadata": {
+    "mapbox:autocomposite": true,
+    "mapbox:type": "template",
+    "mapbox:sdk-support": {
+      "js": "3.0.0",
+      "android": "11.0.0",
+      "ios": "11.0.0"
+    }
+  },
+  "center": [84.124, 28.3949],
+  "zoom": 7.2,
+  "bearing": -15,
+  "pitch": 52,
+  "sources": {
+    "mapbox-satellite": {
+      "type": "raster",
+      "url": "mapbox://mapbox.satellite",
+      "tileSize": 512
+    },
+    "mapbox-dem": {
+      "type": "raster-dem",
+      "url": "mapbox://mapbox.mapbox-terrain-dem-v1",
+      "tileSize": 512,
+      "maxzoom": 14
+    },
+    "composite": {
+      "type": "vector",
+      "url": "mapbox://mapbox.mapbox-streets-v8"
+    }
+  },
+  "terrain": {
+    "source": "mapbox-dem",
+    "exaggeration": 1.35
+  },
+  "fog": {
+    "range": [0.6, 12.0],
+    "color": "#120B04",
+    "high-color": "#070E1A",
+    "space-color": "#020408",
+    "horizon-blend": 0.12,
+    "star-intensity": 0.8
+  },
+  "sprite": "mapbox://sprites/mapbox/satellite-streets-v12",
+  "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#04070B"
+      }
+    },
+    {
+      "id": "satellite-imagery",
+      "type": "raster",
+      "source": "mapbox-satellite",
+      "paint": {
+        "raster-saturation": 0.18,
+        "raster-contrast": 0.22,
+        "raster-brightness-max": 0.96
+      }
+    },
+    {
+      "id": "cinematic-vignette",
+      "type": "background",
+      "paint": {
+        "background-color": "#FF8500",
+        "background-opacity": 0.03
+      }
+    },
+    {
+      "id": "waterway-rivers",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "waterway",
+      "paint": {
+        "line-color": "#38BDF8",
+        "line-opacity": 0.45,
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          8,
+          0.8,
+          14,
+          2.5
+        ]
+      }
+    },
+    {
+      "id": "admin-boundaries-glow",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "admin",
+      "filter": ["<=", "admin_level", 4],
+      "paint": {
+        "line-color": "#FF9F2E",
+        "line-opacity": 0.4,
+        "line-width": 1.2,
+        "line-dasharray": [3, 2]
+      }
+    },
+    {
+      "id": "luxury-roads-minor",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "road",
+      "minzoom": 10.5,
+      "filter": ["in", "class", "secondary", "tertiary", "street"],
+      "paint": {
+        "line-color": "#FFFFFF",
+        "line-opacity": 0.28,
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          11,
+          0.6,
+          16,
+          2.2
+        ]
+      }
+    },
+    {
+      "id": "luxury-roads-highways",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "road",
+      "filter": ["in", "class", "motorway", "trunk", "primary"],
+      "paint": {
+        "line-color": "#FFEACC",
+        "line-opacity": 0.55,
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6,
+          1.2,
+          14,
+          3.2
+        ]
+      }
+    },
+    {
+      "id": "mountain-peaks-3d",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "natural_label",
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Bold", "Arial Unicode MS Bold"],
+        "text-size": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          7,
+          10,
+          13,
+          13
+        ],
+        "text-transform": "uppercase",
+        "text-letter-spacing": 0.16,
+        "text-offset": [0, 0.6]
+      },
+      "paint": {
+        "text-color": "#FFFFFF",
+        "text-halo-color": "rgba(0, 0, 0, 0.9)",
+        "text-halo-width": 2.2,
+        "text-halo-blur": 1.0
+      }
+    },
+    {
+      "id": "town-labels-glass",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "place_label",
+      "minzoom": 8.5,
+      "filter": ["in", "class", "town", "village", "hamlet"],
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Medium", "Arial Unicode MS Regular"],
+        "text-size": 11,
+        "text-letter-spacing": 0.05
+      },
+      "paint": {
+        "text-color": "#F3F4F6",
+        "text-halo-color": "rgba(10, 15, 25, 0.85)",
+        "text-halo-width": 1.8
+      }
+    },
+    {
+      "id": "city-labels-luxury",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "place_label",
+      "filter": ["in", "class", "city", "major_city"],
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Bold", "Arial Unicode MS Bold"],
+        "text-size": 14,
+        "text-letter-spacing": 0.08
+      },
+      "paint": {
+        "text-color": "#FFFFFF",
+        "text-halo-color": "rgba(0, 0, 0, 0.9)",
+        "text-halo-width": 2.5,
+        "text-halo-blur": 1.2
+      }
+    },
+    {
+      "id": "country-label-nepal",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "place_label",
+      "filter": ["==", "class", "country"],
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Bold", "Arial Unicode MS Bold"],
+        "text-size": 20,
+        "text-transform": "uppercase",
+        "text-letter-spacing": 0.35
+      },
+      "paint": {
+        "text-color": "#FFFFFF",
+        "text-halo-color": "rgba(0, 0, 0, 0.95)",
+        "text-halo-width": 3.0,
+        "text-halo-blur": 2.0
+      }
+    }
+  ]
+}

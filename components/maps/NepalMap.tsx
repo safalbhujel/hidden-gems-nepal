@@ -44,13 +44,36 @@ export function NepalMap({
       minZoom: MAP_CONFIG.minZoom,
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: NEPAL_BOUNDS,
+      pitch: MAP_CONFIG.defaultPitch,
+      bearing: MAP_CONFIG.defaultBearing,
       interactive,
       attributionControl: false,
     });
 
     if (interactive) {
-      map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
     }
+
+    map.on('style.load', () => {
+      if (!map.getSource('mapbox-dem')) {
+        map.addSource('mapbox-dem', {
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          tileSize: 512,
+          maxzoom: 14,
+        });
+      }
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.35 });
+
+      map.setFog({
+        range: [0.6, 12.0],
+        color: '#120B04',
+        'high-color': '#070E1A',
+        'space-color': '#020408',
+        'horizon-blend': 0.12,
+        'star-intensity': 0.8,
+      });
+    });
 
     map.on('load', () => {
       mapInstanceRef.current = map;

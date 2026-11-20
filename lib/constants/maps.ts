@@ -15,11 +15,14 @@ export const NEPAL_BOUNDS: [[number, number], [number, number]] = [
 export const NEPAL_CENTER: [number, number] = [84.124, 28.3949];
 
 export const MAP_CONFIG = {
-  defaultZoom: 6.8,
+  defaultZoom: 7.2,
   minZoom: 5.8,
   maxZoom: 18.0,
-  style: 'mapbox://styles/mapbox/outdoors-v12', // High-fidelity terrain & trails
-  darkStyle: 'mapbox://styles/mapbox/dark-v11',
+  defaultPitch: 50, // Cinematic 3D Himalayan slant (Snapchat style)
+  defaultBearing: -14,
+  // Luxury photorealistic satellite style
+  style: 'mapbox://styles/mapbox/satellite-streets-v12',
+  darkStyle: 'mapbox://styles/mapbox/satellite-streets-v12',
 } as const;
 
 /**

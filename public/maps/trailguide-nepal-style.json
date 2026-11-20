@@ -1,0 +1,275 @@
+{
+  "version": 8,
+  "name": "HiddenGems Nepal — Authentic Trailguide",
+  "metadata": {
+    "mapbox:autocomposite": true,
+    "mapbox:type": "template",
+    "mapbox:sdk-support": {
+      "js": "3.0.0",
+      "android": "11.0.0",
+      "ios": "11.0.0"
+    }
+  },
+  "center": [84.124, 28.3949],
+  "zoom": 6.8,
+  "bearing": 0,
+  "pitch": 40,
+  "sources": {
+    "composite": {
+      "url": "mapbox://mapbox.mapbox-streets-v8,mapbox.mapbox-terrain-v2",
+      "type": "vector"
+    },
+    "mapbox-dem": {
+      "url": "mapbox://mapbox.mapbox-terrain-dem-v1",
+      "type": "raster-dem",
+      "tileSize": 512,
+      "maxzoom": 14
+    }
+  },
+  "terrain": {
+    "source": "mapbox-dem",
+    "exaggeration": 1.25
+  },
+  "fog": {
+    "range": [0.5, 10],
+    "color": "#F0ECE1",
+    "high-color": "#D3DEE8",
+    "space-color": "#0B101B",
+    "horizon-blend": 0.08
+  },
+  "sprite": "mapbox://sprites/mapbox/outdoors-v12",
+  "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#F5F2EB"
+      }
+    },
+    {
+      "id": "landcover-base",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "landcover",
+      "paint": {
+        "fill-color": [
+          "match",
+          ["get", "class"],
+          "wood",
+          "#E2E9DC",
+          "scrub",
+          "#E8EEE3",
+          "grass",
+          "#E2E9DC",
+          "glacier",
+          "#FAFBFD",
+          "#F5F2EB"
+        ],
+        "fill-opacity": 0.85
+      }
+    },
+    {
+      "id": "national-parks",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "landuse",
+      "filter": ["==", "class", "national_park"],
+      "paint": {
+        "fill-color": "#E0E8DA",
+        "fill-opacity": 0.65
+      }
+    },
+    {
+      "id": "contour-lines",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "contour",
+      "minzoom": 10,
+      "paint": {
+        "line-color": "#DED7CC",
+        "line-width": 0.5,
+        "line-opacity": 0.55
+      }
+    },
+    {
+      "id": "hillshade-shading",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "hillshade",
+      "paint": {
+        "fill-color": [
+          "match",
+          ["get", "class"],
+          "shadow",
+          "#3B3834",
+          "highlight",
+          "#FFFFFF",
+          "transparent"
+        ],
+        "fill-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6,
+          0.12,
+          14,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#CAD7DE"
+      }
+    },
+    {
+      "id": "waterway-rivers",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "waterway",
+      "paint": {
+        "line-color": "#CAD7DE",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          8,
+          0.8,
+          14,
+          2.5
+        ]
+      }
+    },
+    {
+      "id": "admin-boundaries",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "admin",
+      "filter": ["<=", "admin_level", 4],
+      "paint": {
+        "line-color": "#D4CDC3",
+        "line-width": 1,
+        "line-dasharray": [2, 2]
+      }
+    },
+    {
+      "id": "road-secondary",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "road",
+      "minzoom": 10,
+      "filter": ["in", "class", "secondary", "tertiary", "street"],
+      "paint": {
+        "line-color": "#EAE5DE",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          10,
+          0.5,
+          16,
+          2.0
+        ]
+      }
+    },
+    {
+      "id": "road-primary",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "road",
+      "filter": ["in", "class", "motorway", "trunk", "primary"],
+      "paint": {
+        "line-color": "#E0DAD1",
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          6,
+          1.0,
+          14,
+          3.0
+        ]
+      }
+    },
+    {
+      "id": "mountain-peaks-label",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "natural_label",
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Medium", "Arial Unicode MS Regular"],
+        "text-size": 11,
+        "text-transform": "uppercase",
+        "text-letter-spacing": 0.12,
+        "text-max-width": 8
+      },
+      "paint": {
+        "text-color": "#5A554E",
+        "text-halo-color": "#F5F2EB",
+        "text-halo-width": 1.5
+      }
+    },
+    {
+      "id": "town-labels",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "place_label",
+      "minzoom": 8.5,
+      "filter": ["in", "class", "town", "village", "hamlet"],
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Regular", "Arial Unicode MS Regular"],
+        "text-size": 11,
+        "text-letter-spacing": 0.04
+      },
+      "paint": {
+        "text-color": "#686259",
+        "text-halo-color": "#F5F2EB",
+        "text-halo-width": 1.5
+      }
+    },
+    {
+      "id": "city-labels",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "place_label",
+      "filter": ["in", "class", "city", "major_city"],
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+        "text-size": 13,
+        "text-letter-spacing": 0.06
+      },
+      "paint": {
+        "text-color": "#2D2B28",
+        "text-halo-color": "#F5F2EB",
+        "text-halo-width": 2.0
+      }
+    },
+    {
+      "id": "country-label-nepal",
+      "type": "symbol",
+      "source": "composite",
+      "source-layer": "place_label",
+      "filter": ["==", "class", "country"],
+      "layout": {
+        "text-field": ["get", "name_en"],
+        "text-font": ["DIN Pro Bold", "Arial Unicode MS Bold"],
+        "text-size": 16,
+        "text-transform": "uppercase",
+        "text-letter-spacing": 0.28
+      },
+      "paint": {
+        "text-color": "#1A1A1A",
+        "text-halo-color": "#F5F2EB",
+        "text-halo-width": 2.5
+      }
+    }
+  ]
+}
