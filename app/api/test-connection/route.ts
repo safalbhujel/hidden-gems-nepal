@@ -9,7 +9,7 @@ export async function GET() {
     // 2. Test a basic query. 
     // We query the 'districts' table. It doesn't exist yet (that's Phase 4), 
     // but a "table does not exist" error is better than an auth/connection error!
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("districts")
       .select("count", { count: "exact", head: true });
 

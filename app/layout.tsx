@@ -3,12 +3,17 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { Navbar } from "@/components/layout/navbar";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "HiddenGems Nepal",
-  description: "Discover the Nepal that everyone misses.",
+  title: "HiddenGems Nepal | Discover the Nepal that everyone misses",
+  description:
+    "A community-powered platform to find underrated places, local food spots, and authentic experiences across all 77 districts of Nepal.",
+  icons: {
+    icon: "/icons/HiddenGemsNepal_Affinity.svg",
+  },
 };
 
 export default function RootLayout({
@@ -17,7 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn("font-sans", geist.variable)}
+    >
       <body className="antialiased">
         <ThemeProvider
           attribute="class"
@@ -25,7 +34,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <Navbar />
+          <main className="min-h-screen bg-background">{children}</main>
         </ThemeProvider>
       </body>
     </html>
