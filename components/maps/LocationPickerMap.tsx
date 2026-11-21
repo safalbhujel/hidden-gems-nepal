@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Search, Navigation, Loader2, MapPin, AlertCircle } from 'lucide-react';
+import { Search, Navigation, Loader2, MapPin, AlertCircle, Check } from 'lucide-react';
 import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupEnhancedMap } from '@/lib/constants/maps';
 import { forwardGeocode, reverseGeocode, type GeocodingResult } from '@/lib/services/geocoding';
 import { Button } from '@/components/ui/button';
@@ -360,8 +360,8 @@ export function LocationPickerMap({
       {/* ── Bottom Floating Bar: Active Coordinates & Address ──────────────────── */}
       <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-background/95 px-3.5 py-2 text-xs text-foreground shadow-md backdrop-blur-md">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
-            ✓
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Check className="h-3 w-3 stroke-[3]" />
           </span>
           <div className="min-w-0">
             <p className="line-clamp-1 font-medium text-foreground">

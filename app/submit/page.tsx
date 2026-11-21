@@ -36,7 +36,7 @@ export default async function SubmitGemPage() {
             <span>Community Contribution</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-            Share a Hidden Gem 🏔️
+            Share a Hidden Gem
           </h1>
           <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-xl">
             Help fellow travelers discover the real Nepal. Drop a pin on the map, describe the vibe,

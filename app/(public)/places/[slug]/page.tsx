@@ -250,7 +250,7 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
             {/* Why Special */}
             {place.why_special && (
               <section className="space-y-3">
-                <h2 className="text-xl font-bold">Why It&apos;s Special ✨</h2>
+                <h2 className="text-xl font-bold">Why It&apos;s Special</h2>
                 <div className="p-5 rounded-xl bg-primary/5 border border-primary/15">
                   <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                     {place.why_special}
@@ -475,7 +475,7 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                 </a>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    `Discovered ${place.name} on HiddenGems Nepal! 🇳🇵`
+                    `Discovered ${place.name} on HiddenGems Nepal!`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

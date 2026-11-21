@@ -2,16 +2,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   ArrowRight,
-  Mountain,
   Flame,
   ChevronRight,
-  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SmartSearchBar } from '@/components/search/SmartSearchBar'
 import { FeaturedGemsClient } from '@/components/places/FeaturedGemsClient'
 import { getPlacesForCards, getCategories } from '@/lib/queries/places'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { CategoryIcon } from '@/components/icons/CategoryIcon'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEO
@@ -85,9 +84,8 @@ export default async function HomePage() {
           </div>
 
           {username && (
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary animate-in fade-in-50">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Namaste, @{username} ✦ Ready to explore?</span>
+            <div className="mb-5 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary animate-in fade-in-50">
+              <span>Namaste, @{username} · Welcome back</span>
             </div>
           )}
 
@@ -116,26 +114,19 @@ export default async function HomePage() {
         <div className="container mx-auto max-w-7xl px-4">
           <h2 className="text-2xl font-bold mb-6">What&apos;s your vibe?</h2>
           <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x">
-            {(categories.length > 0 ? categories : []).map((cat) => {
-              const IconComponent = Mountain // Default fallback icon
-              return (
-                <Link
-                  key={cat.id}
-                  href={`/explore?category=${cat.slug}`}
-                  className="flex-shrink-0 snap-start"
-                >
-                  {/* Flat chip: border-only, hover lifts border to Sunset Orange */}
-                  <div className={CATEGORY_CHIP_CLASSES}>
-                    {cat.icon ? (
-                      <span className="text-xl" aria-hidden="true">{cat.icon}</span>
-                    ) : (
-                      <IconComponent className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
-                    )}
-                    <span className="font-semibold whitespace-nowrap text-foreground">{cat.name}</span>
-                  </div>
-                </Link>
-              )
-            })}
+            {(categories.length > 0 ? categories : []).map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/explore?category=${cat.slug}`}
+                className="flex-shrink-0 snap-start"
+              >
+                {/* Flat chip: border-only, hover lifts border to Sunset Orange */}
+                <div className={CATEGORY_CHIP_CLASSES}>
+                  <CategoryIcon slug={cat.slug} name={cat.name} className="h-5 w-5 text-primary shrink-0" />
+                  <span className="font-semibold whitespace-nowrap text-foreground">{cat.name}</span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { logout } from '@/app/(auth)/actions';
 import { Button } from '@/components/ui/button';
-import { Compass, PlusCircle, LogOut, Sparkles, Mail } from 'lucide-react';
+import { Compass, PlusCircle, LogOut, Mail } from 'lucide-react';
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -64,8 +64,7 @@ export default async function ProfilePage() {
             />
           </Link>
 
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3 w-3" />
+          <div className="mb-2 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
             <span>Explorer Profile</span>
           </div>
 

@@ -3,6 +3,7 @@ import { Search, SlidersHorizontal } from 'lucide-react'
 import { getPlacesForCards, getPlacesForMap, getCategories, getDistricts } from '@/lib/queries/places'
 import { PlaceCardSkeleton } from '@/components/places/PlaceCard'
 import { ExploreViewSwitcher } from '@/components/places/ExploreViewSwitcher'
+import { CategoryIcon } from '@/components/icons/CategoryIcon'
 import type { SortOption } from '@/lib/types/places'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -147,7 +148,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
               <option value="">All Categories</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.slug}>
-                  {cat.icon ? `${cat.icon} ` : ''}{cat.name}
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -208,10 +209,10 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
               <a
                 key={cat.id}
                 href={`/explore?category=${cat.slug}${sort !== 'newest' ? `&sort=${sort}` : ''}`}
-                className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border bg-card text-sm font-medium hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
+                className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card text-sm font-medium hover:border-primary hover:text-primary transition-colors whitespace-nowrap"
               >
-                {cat.icon && <span>{cat.icon}</span>}
-                {cat.name}
+                <CategoryIcon slug={cat.slug} name={cat.name} className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span>{cat.name}</span>
               </a>
             ))}
           </div>

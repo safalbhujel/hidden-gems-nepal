@@ -67,7 +67,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
           <CheckCircle2 className="h-10 w-10" />
         </div>
-        <h2 className="text-2xl font-bold">Gem Submitted for Review! 🏔️</h2>
+        <h2 className="text-2xl font-bold">Gem Submitted for Review!</h2>
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
           Thank you for contributing to HiddenGems Nepal! Our local moderators will verify the
           details and publish it to the explore map shortly.
@@ -121,7 +121,6 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
               <option value="">Select a category</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.icon ? `${cat.icon} ` : ''}
                   {cat.name}
                 </option>
               ))}

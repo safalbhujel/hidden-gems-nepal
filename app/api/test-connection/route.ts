@@ -23,9 +23,9 @@ export async function GET() {
       status: "success", 
       message: "Supabase connected successfully! PostGIS is ready for Phase 4 schema.",
       envCheck: {
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "✅ Set" : "❌ Missing",
-        anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✅ Set" : " Missing",
-        serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? "✅ Set" : "❌ Missing",
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL ? "Set" : "Missing",
+        anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Set" : "Missing",
+        serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? "Set" : "Missing",
       }
     });
   } catch (err) {

@@ -9,7 +9,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, AtSign, Check, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { AlertCircle, AtSign, Check, Loader2, ArrowRight } from 'lucide-react';
 
 function ChooseUsernameForm() {
   const router = useRouter();
@@ -138,9 +138,8 @@ function ChooseUsernameForm() {
           />
         </Link>
 
-        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-          <Sparkles className="h-3 w-3" />
-          <span>Almost Ready</span>
+        <div className="mb-2 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
+          <span>Identity Setup</span>
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">

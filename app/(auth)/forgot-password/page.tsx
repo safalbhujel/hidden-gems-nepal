@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, CheckCircle2, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 
 const forgotSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -91,8 +91,7 @@ export default function ForgotPasswordPage() {
             />
           </Link>
 
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3 w-3" />
+          <div className="mb-2 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
             <span>Account Recovery</span>
           </div>
 

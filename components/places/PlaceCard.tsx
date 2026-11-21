@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Star, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { CategoryIcon } from '@/components/icons/CategoryIcon'
 import type { PlaceCardData } from '@/lib/types/places'
 import { cn } from '@/lib/utils'
 
@@ -54,13 +55,10 @@ export function PlaceCard({ place, className }: PlaceCardProps) {
           ) : (
             /* Fallback: flat earthy gradient, no heavy shadows */
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              {place.categories?.icon ? (
-                <span className="text-5xl select-none opacity-40">
-                  {place.categories.icon}
-                </span>
-              ) : (
-                <MapPin className="h-12 w-12 text-primary opacity-30" aria-hidden="true" />
-              )}
+              <CategoryIcon
+                name={place.categories?.name}
+                className="h-12 w-12 text-primary opacity-30"
+              />
             </div>
           )}
 
@@ -76,11 +74,9 @@ export function PlaceCard({ place, className }: PlaceCardProps) {
           {/* Category badge — bottom left */}
           {place.categories && (
             <div className="absolute bottom-3 left-3">
-              <Badge className="bg-background/90 text-foreground border-0 text-[11px] font-semibold px-2 py-0.5 rounded-md">
-                {place.categories.icon && (
-                  <span className="mr-1 text-xs">{place.categories.icon}</span>
-                )}
-                {place.categories.name}
+              <Badge className="bg-background/90 text-foreground border-0 text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                <CategoryIcon name={place.categories.name} className="h-3 w-3 text-primary" />
+                <span>{place.categories.name}</span>
               </Badge>
             </div>
           )}
