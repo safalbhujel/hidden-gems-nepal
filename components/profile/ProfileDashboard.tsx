@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -20,6 +20,8 @@ import {
   AlertCircle,
   Plus,
   Shield,
+  UploadCloud,
+  Camera,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +30,7 @@ import {
   NEPAL_AVATAR_PRESETS,
   resolveUserAvatar,
 } from '@/lib/constants/avatars';
-import { updateAvatar, updateProfile } from '@/app/profile/actions';
+import { updateAvatar, updateProfile, uploadAvatar } from '@/app/profile/actions';
 
 export interface SubmittedPlaceItem {
   id: string;
@@ -96,6 +98,10 @@ export function ProfileDashboard({
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [copiedHandle, setCopiedHandle] = useState(false);
 
+  // Custom Avatar Upload
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
   // Profile data states
   const [usernameInput, setUsernameInput] = useState(profile?.username || user.email?.split('@')[0] || '');
   const [fullNameInput, setFullNameInput] = useState(profile?.full_name || '');
@@ -108,6 +114,47 @@ export function ProfileDashboard({
 
   const [isPending, startTransition] = useTransition();
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleUploadCustomAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setSaveMessage({ type: 'error', text: 'Please select a valid image file (JPG, PNG, WebP).' });
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      setSaveMessage({ type: 'error', text: 'Image size must be less than 8MB.' });
+      return;
+    }
+
+    const localPreview = URL.createObjectURL(file);
+    setCurrentAvatarUrl(localPreview);
+    setIsUploadingAvatar(true);
+    setSaveMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.set('avatar_file', file);
+      const res = await uploadAvatar(formData);
+
+      if (res.error) {
+        setSaveMessage({ type: 'error', text: res.error });
+      } else if (res.avatarUrl) {
+        setCurrentAvatarUrl(res.avatarUrl);
+        setSaveMessage({ type: 'success', text: 'Custom profile photo uploaded successfully!' });
+        setTimeout(() => setSaveMessage(null), 3500);
+        setIsAvatarModalOpen(false);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      setSaveMessage({ type: 'error', text: msg });
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarFileInputRef.current) avatarFileInputRef.current.value = '';
+    }
+  };
 
   // Resolve user info
   const handle: string =
@@ -785,7 +832,7 @@ export function ProfileDashboard({
                   <span>Choose Your Explorer Avatar</span>
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Pick your default Google profile photo or one of our 10 handcrafted Nepal explorer avatars.
+                  Upload an image from your device gallery, use your Google profile photo, or pick one of our 10 handcrafted Nepal explorer avatars.
                 </p>
               </div>
               <button
@@ -797,7 +844,56 @@ export function ProfileDashboard({
               </button>
             </div>
 
-            {/* Option A: Google Profile Photo (If available) */}
+            {/* Option 1: Upload from Device / Gallery */}
+            <div className="rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-4 sm:p-5 transition-colors hover:bg-primary/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-xs">
+                    <UploadCloud className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
+                      <span>Upload Photo from Gallery</span>
+                      <span className="text-[10px] font-semibold text-primary bg-primary/15 px-2 py-0.5 rounded-full">New</span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Choose any picture from your phone, tablet or PC gallery (JPG, PNG, WebP up to 8MB)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <input
+                    ref={avatarFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadCustomAvatar}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isUploadingAvatar}
+                    onClick={() => avatarFileInputRef.current?.click()}
+                    className="gap-2 h-9 text-xs px-4"
+                  >
+                    {isUploadingAvatar ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Uploading…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-3.5 w-3.5" />
+                        <span>Choose from Gallery</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Option 2: Google Profile Photo (If available) */}
             {googlePhoto && (
               <div className="rounded-2xl border border-border/80 bg-background/50 p-4 space-y-2">
                 <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">

@@ -36,6 +36,76 @@ export async function updateAvatar(avatarUrl: string): Promise<{ success?: boole
   return { success: true };
 }
 
+export async function uploadAvatar(
+  formData: FormData
+): Promise<{ success?: boolean; error?: string; avatarUrl?: string }> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'You must be logged in to update your avatar.' };
+  }
+
+  const file = formData.get('avatar_file') as File | null;
+  if (!file || typeof file.size !== 'number' || file.size === 0) {
+    return { error: 'Please choose an image file to upload.' };
+  }
+
+  // Max 8MB
+  if (file.size > 8 * 1024 * 1024) {
+    return { error: 'Image size must be less than 8MB.' };
+  }
+
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const cleanName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('profile-avatars')
+    .upload(cleanName, file, {
+      contentType: file.type || 'image/jpeg',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('[uploadAvatar] Storage upload error:', uploadError);
+    return { error: uploadError.message || 'Failed to upload image. Please try again.' };
+  }
+
+  const { data: pubData } = supabase.storage
+    .from('profile-avatars')
+    .getPublicUrl(cleanName);
+
+  if (!pubData?.publicUrl) {
+    return { error: 'Failed to generate public URL for uploaded photo.' };
+  }
+
+  const publicUrl = pubData.publicUrl;
+
+  const { error: dbError } = await supabase
+    .from('profiles')
+    .update({
+      avatar_url: publicUrl,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', user.id);
+
+  if (dbError) {
+    console.error('[uploadAvatar] Database update error:', dbError);
+    return { error: dbError.message };
+  }
+
+  // Sync auth user metadata
+  await supabase.auth.updateUser({
+    data: { avatar_url: publicUrl },
+  });
+
+  revalidatePath('/profile');
+  revalidatePath('/', 'layout');
+  return { success: true, avatarUrl: publicUrl };
+}
+
 export async function updateProfile(formData: FormData): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createSupabaseServerClient();
   const {
