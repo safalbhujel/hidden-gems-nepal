@@ -20,10 +20,11 @@ export const MAP_CONFIG = {
   defaultPitch: 0,
   defaultBearing: 0,
 
-  // Default photorealistic satellite style and topographic outdoor style
-  style: 'mapbox://styles/mapbox/satellite-streets-v12',
+  // Default photorealistic satellite style, topographic outdoor style, and dark vector style
+  style: 'mapbox://styles/mapbox/dark-v11',
   satelliteStyle: 'mapbox://styles/mapbox/satellite-streets-v12',
   outdoorsStyle: 'mapbox://styles/mapbox/outdoors-v12',
+  darkStyle: 'mapbox://styles/mapbox/dark-v11',
 
   // 3D Terrain configuration (1.5x exaggeration for tangible Himalayan relief)
   terrain: {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, MapPin, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { Category, District } from '@/lib/types/places';
 import { LocationPickerMap, type Coordinates, type LocationDetails } from '@/components/maps/LocationPickerMap';
 import { submitPlace } from '@/app/submit/actions';
@@ -151,32 +151,16 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
       </div>
 
-      {/* ── Section 2: Interactive Map Location Picker ─────────────────────── */}
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-          <div>
-            <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
-              <MapPin className="h-5 w-5 text-primary" />
-              <span>2. Pin the Exact Location</span>
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Search landmarks, paste exact coordinates (e.g. 26.8680° N, 87.3234° E), or drag the pin directly onto the spot.
-            </p>
-          </div>
-          <div className="font-mono text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-md self-start sm:self-auto">
-            {coords.lat.toFixed(5)}° N, {coords.lng.toFixed(5)}° E
-          </div>
-        </div>
+      {/* ── Section 2: Interactive Map Location Picker (Dark Luxury Card Matching Design Reference) ── */}
+      <LocationPickerMap
+        value={coords}
+        onChange={setCoords}
+        onLocationDetails={handleLocationDetails}
+      />
 
-        {/* The Live Interactive Map */}
-        <LocationPickerMap
-          value={coords}
-          onChange={setCoords}
-          onLocationDetails={handleLocationDetails}
-          className="h-[540px] sm:h-[600px] lg:h-[640px] w-full"
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+      {/* Detected Address & District Selection Card */}
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="address">Detected Address / Landmark</Label>
             <Input
