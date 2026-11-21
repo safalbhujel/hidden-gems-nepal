@@ -3,8 +3,29 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Search, Navigation, Loader2, MapPin, AlertCircle, Check } from 'lucide-react';
-import { NEPAL_BOUNDS, NEPAL_CENTER, MAP_CONFIG, isWithinNepal, setupEnhancedMap } from '@/lib/constants/maps';
+import {
+  Search,
+  Navigation,
+  Loader2,
+  MapPin,
+  AlertCircle,
+  Compass,
+  Mountain,
+  Layers,
+  Satellite,
+  Maximize2,
+  Gem,
+  X,
+  ChevronRight,
+} from 'lucide-react';
+import {
+  NEPAL_BOUNDS,
+  NEPAL_CENTER,
+  MAP_CONFIG,
+  CAMERA_PRESETS,
+  isWithinNepal,
+  setupEnhancedMap,
+} from '@/lib/constants/maps';
 import { forwardGeocode, reverseGeocode, type GeocodingResult } from '@/lib/services/geocoding';
 import { Button } from '@/components/ui/button';
 
@@ -26,15 +47,30 @@ interface LocationPickerMapProps {
   className?: string;
 }
 
+const POPULAR_REGIONS = [
+  { name: 'Pokhara', coordinates: [83.9856, 28.2096] as [number, number] },
+  { name: 'Kathmandu', coordinates: [85.324, 27.7172] as [number, number] },
+  { name: 'Mustang', coordinates: [83.8473, 28.7842] as [number, number] },
+  { name: 'Nagarkot', coordinates: [85.5199, 27.7174] as [number, number] },
+  { name: 'Chitwan', coordinates: [84.4298, 27.5291] as [number, number] },
+  { name: 'Bandipur', coordinates: [84.417, 27.9333] as [number, number] },
+  { name: 'Everest Region', coordinates: [86.7275, 27.8048] as [number, number] },
+  { name: 'Ilam', coordinates: [87.9263, 26.9114] as [number, number] },
+];
+
 export function LocationPickerMap({
   value,
   onChange,
   onLocationDetails,
-  className = 'h-[460px] w-full',
+  className = 'h-[460px] md:h-[500px] w-full',
 }: LocationPickerMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+
+  // Search dialogue container & input refs
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   // Callbacks in refs to avoid recreating map listeners
   const onChangeRef = useRef(onChange);
@@ -53,12 +89,18 @@ export function LocationPickerMap({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GeocodingResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+  // Map layer & camera state (matching ExploreMap)
+  const [activePreset, setActivePreset] = useState<'overview' | 'cinematic' | 'mountain'>('overview');
+  const [activeLayer, setActiveLayer] = useState<'outdoors' | 'satellite'>('satellite');
+
   const [isLocating, setIsLocating] = useState(false);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
   const [currentAddress, setCurrentAddress] = useState<string>('');
 
-  // Reverse geocodes the coordinates and informs parent
+  // Reverse geocodes the coordinates and informs parent form
   const handleReverseGeocode = useCallback(async (lng: number, lat: number) => {
     try {
       const result = await reverseGeocode(lng, lat);
@@ -89,6 +131,7 @@ export function LocationPickerMap({
         mapRef.current.flyTo({
           center: [roundedLng, roundedLat],
           zoom: Math.max(mapRef.current.getZoom(), 14),
+          pitch: 45,
           duration: 1200,
           essential: true,
         });
@@ -121,10 +164,14 @@ export function LocationPickerMap({
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: NEPAL_BOUNDS,
       pitch: 45,
+      bearing: MAP_CONFIG.camera.bearing,
       attributionControl: false,
     });
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
+    map.addControl(
+      new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: true }),
+      'top-right'
+    );
 
     map.on('style.load', () => {
       setupEnhancedMap(map);
@@ -133,31 +180,54 @@ export function LocationPickerMap({
     map.on('load', () => {
       mapRef.current = map;
 
-      // Custom marker container matching "Authentic Trailguide" design
+      // Custom glowing marker matching ExploreMap's authentic jewel pin design
       const el = document.createElement('div');
-      el.className = 'custom-gem-pin';
+      el.className = 'custom-gem-pin cursor-grab active:cursor-grabbing group';
       el.innerHTML = `
-        <div style="
-          width: 34px;
-          height: 34px;
-          background-color: hsl(28 100% 50%);
-          border: 3px solid white;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-          cursor: grab;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.15s ease;
-        ">
+        <div style="position: relative; display: flex; align-items: center; justify-content: center;">
           <div style="
-            width: 10px;
-            height: 10px;
-            background-color: white;
-            border-radius: 50%;
-            transform: rotate(45deg);
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            border-radius: 9999px;
+            background: rgba(255, 133, 0, 0.4);
+            animation: ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
           "></div>
+
+          <div style="
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #FF8500 0%, #E65100 100%);
+            color: #FFFFFF;
+            padding: 5px 10px;
+            border-radius: 9999px;
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 0.02em;
+            box-shadow: 0 6px 20px rgba(255, 133, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+          ">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+              <path d="M6 3h12l4 6-10 13L2 9z"/>
+            </svg>
+            <span style="text-shadow: 0 1px 2px rgba(0,0,0,0.4);">New Gem</span>
+            <div style="
+              position: absolute;
+              bottom: -6px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 0;
+              height: 0;
+              border-left: 6px solid transparent;
+              border-right: 6px solid transparent;
+              border-top: 6px solid #E65100;
+            "></div>
+          </div>
         </div>
       `;
 
@@ -177,9 +247,13 @@ export function LocationPickerMap({
         setPosition(lngLat.lng, lngLat.lat, false);
       });
 
-      // Tap or click on map to reposition
+      // Tap or click on map to reposition pin
       map.on('click', (e) => {
-        setPosition(e.lngLat.lng, e.lngLat.lat, false);
+        const target = e.originalEvent.target as HTMLElement | null;
+        if (target && !target.closest('.custom-gem-pin')) {
+          setPosition(e.lngLat.lng, e.lngLat.lat, false);
+          setIsSearchOpen(false);
+        }
       });
 
       // Initial reverse geocode if value was provided
@@ -213,37 +287,107 @@ export function LocationPickerMap({
     }
   }, [value, handleReverseGeocode]);
 
+  // Click outside listener to dismiss search dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Select a searched place
+  const handleSelectSearchResult = useCallback(
+    (result: GeocodingResult) => {
+      const [lng, lat] = result.coordinates;
+      setPosition(lng, lat, true);
+      setSearchQuery(result.text);
+      setCurrentAddress(result.placeName);
+      setIsSearchOpen(false);
+    },
+    [setPosition]
+  );
+
+  // Keyboard shortcut listener (Cmd+K / Ctrl+K / '/' to focus search, arrows to navigate)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (
+        (e.key === 'k' && (e.metaKey || e.ctrlKey)) ||
+        (e.key === '/' &&
+          document.activeElement?.tagName !== 'INPUT' &&
+          document.activeElement?.tagName !== 'TEXTAREA')
+      ) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setIsSearchOpen(true);
+        return;
+      }
+
+      if (!isSearchOpen) return;
+
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+        searchInputRef.current?.blur();
+        return;
+      }
+
+      if (searchResults.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setHighlightedIndex((prev) => (prev + 1) % searchResults.length);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setHighlightedIndex((prev) => (prev <= 0 ? searchResults.length - 1 : prev - 1));
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (searchResults[highlightedIndex]) {
+            handleSelectSearchResult(searchResults[highlightedIndex]);
+          }
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchOpen, searchResults, highlightedIndex, handleSelectSearchResult]);
+
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
+    setHighlightedIndex(0);
     if (!val.trim() || val.length < 2) {
       setSearchResults([]);
-      setShowDropdown(false);
     }
   };
 
   // Forward geocoding search handler with debounce
   useEffect(() => {
     const trimmed = searchQuery.trim();
-    if (trimmed.length < 2) return;
+    if (trimmed.length < 2) {
+      return;
+    }
 
     const timer = setTimeout(async () => {
       setIsSearching(true);
-      const results = await forwardGeocode(trimmed, 5);
+      const results = await forwardGeocode(trimmed, 6);
       setSearchResults(results);
-      setShowDropdown(results.length > 0);
       setIsSearching(false);
-    }, 350);
+    }, 320);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Select a searched place
-  const handleSelectSearchResult = (result: GeocodingResult) => {
-    const [lng, lat] = result.coordinates;
+  // Select popular region chip
+  const handleSelectPopularRegion = (region: (typeof POPULAR_REGIONS)[number]) => {
+    const [lng, lat] = region.coordinates;
     setPosition(lng, lat, true);
-    setSearchQuery(result.text);
-    setCurrentAddress(result.placeName);
-    setShowDropdown(false);
+    setSearchQuery(region.name);
+    setIsSearchOpen(false);
   };
 
   // "Use Current Location" handler
@@ -284,66 +428,389 @@ export function LocationPickerMap({
     );
   };
 
+  // Camera Presets Controller (matching ExploreMap)
+  const handleCameraPreset = (presetKey: 'overview' | 'cinematic' | 'mountain') => {
+    if (!mapRef.current) return;
+    setActivePreset(presetKey);
+    const preset = CAMERA_PRESETS[presetKey];
+
+    if (presetKey === 'mountain') {
+      mapRef.current.flyTo({
+        center: preset.center,
+        zoom: preset.zoom,
+        pitch: preset.pitch,
+        bearing: preset.bearing,
+        speed: MAP_CONFIG.animation.flyToSpeed,
+        essential: true,
+      });
+    } else {
+      // If pin is dropped, focus on the pin with the chosen pitch and bearing
+      const pinPos = markerRef.current?.getLngLat();
+      const hasCustomPin =
+        pinPos && (pinPos.lng !== NEPAL_CENTER[0] || pinPos.lat !== NEPAL_CENTER[1]);
+
+      const targetCenter = hasCustomPin ? ([pinPos.lng, pinPos.lat] as [number, number]) : preset.center;
+      const targetZoom = hasCustomPin ? Math.max(mapRef.current.getZoom(), 13) : preset.zoom;
+
+      mapRef.current.flyTo({
+        center: targetCenter,
+        zoom: targetZoom,
+        pitch: preset.pitch,
+        bearing: preset.bearing,
+        speed: MAP_CONFIG.animation.flyToSpeed,
+        essential: true,
+      });
+    }
+  };
+
+  // Layer Style Switcher (Terrain vs Satellite)
+  const handleToggleLayer = (layer: 'outdoors' | 'satellite') => {
+    if (!mapRef.current || layer === activeLayer) return;
+    setActiveLayer(layer);
+    const styleUrl = layer === 'satellite' ? MAP_CONFIG.satelliteStyle : MAP_CONFIG.outdoorsStyle;
+    mapRef.current.setStyle(styleUrl);
+  };
+
   return (
-    <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border shadow-md ${className}`}>
-      {/* ── Top Floating Bar: Location Search + Current Location ───────────────── */}
-      <div className="absolute top-3 left-3 right-3 z-10 flex gap-2">
-        {/* Search Bar */}
-        <div className="relative flex-1">
-          <div className="relative flex items-center">
-            <Search className="absolute left-3.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
-              placeholder="Search address or landmark in Nepal…"
-              className="h-10 w-full rounded-xl border border-border/80 bg-background/95 pl-10 pr-9 text-sm text-foreground shadow-md backdrop-blur-md focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
-            />
-            {isSearching && (
-              <Loader2 className="absolute right-3 h-4 w-4 animate-spin text-primary" />
-            )}
+    <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border bg-muted/20 ${className}`}>
+      {/* ── Floating Map Top Controls Overlay (Z-Index 30) ────────────────── */}
+      <div className="pointer-events-none absolute inset-x-0 top-3 z-30 px-3 sm:px-4 flex flex-col gap-2">
+        {/* Row 1: Search Dialogue Bar + Quick Actions (Desktop & Mobile) */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Place Search Bar + Near Me + Pin Status */}
+          <div className="flex items-center gap-2 flex-1 max-w-full sm:max-w-md lg:max-w-lg">
+            {/* Search Dialogue Box */}
+            <div ref={searchContainerRef} className="pointer-events-auto relative flex-1">
+              {/* Search Trigger Bar */}
+              <div
+                className={`group relative flex items-center h-10 w-full rounded-2xl border transition-all duration-200 bg-background/95 dark:bg-background/90 backdrop-blur-xl shadow-[0_8px_25px_rgba(0,0,0,0.10)] ${
+                  isSearchOpen
+                    ? 'border-[#FF8500] ring-2 ring-[#FF8500]/25'
+                    : 'border-border/80 hover:border-border'
+                }`}
+              >
+                <div className="pl-3.5 pr-1.5 text-muted-foreground group-focus-within:text-[#FF8500] transition-colors">
+                  <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                </div>
+
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    handleSearchChange(e.target.value);
+                    if (!isSearchOpen) setIsSearchOpen(true);
+                  }}
+                  onFocus={() => setIsSearchOpen(true)}
+                  placeholder="Search address, landmark, or district in Nepal..."
+                  className="w-full bg-transparent pr-2 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                />
+
+                {isSearching ? (
+                  <div className="mr-3 text-[#FF8500]">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchResults([]);
+                      searchInputRef.current?.focus();
+                    }}
+                    className="mr-2.5 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    title="Clear query"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : (
+                  <div className="mr-3 hidden sm:flex items-center gap-1">
+                    <kbd className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                      ⌘K
+                    </kbd>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Search Dropdown Panel (Z-Index 50) ────────────────────────── */}
+              {isSearchOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 overflow-hidden rounded-2xl border border-border/80 bg-background/98 dark:bg-background/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] animate-in fade-in-0 zoom-in-95 duration-150">
+                  {!searchQuery.trim() ? (
+                    /* Curated Quick Pills when search input is empty */
+                    <div className="p-3.5 space-y-3">
+                      <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <span>Popular Regions in Nepal</span>
+                        <span className="text-[10px] font-normal lowercase">tap to fly & locate</span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {POPULAR_REGIONS.map((region) => (
+                          <button
+                            key={region.name}
+                            type="button"
+                            onClick={() => handleSelectPopularRegion(region)}
+                            className="rounded-full border border-border/80 bg-muted/40 hover:bg-primary/10 hover:border-primary/40 hover:text-primary px-3 py-1 text-xs font-semibold text-foreground/80 transition-colors"
+                          >
+                            {region.name}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="pt-2 border-t border-border/60 text-[11px] text-muted-foreground">
+                        Type any place, river, trail, or village name in Nepal to pin its exact coordinates.
+                      </div>
+                    </div>
+                  ) : (
+                    /* Results List */
+                    <div className="max-h-[280px] flex flex-col">
+                      <div className="flex items-center justify-between px-3.5 py-2 border-b border-border/60 text-[11px] font-semibold text-muted-foreground bg-muted/20">
+                        <span>
+                          {searchResults.length === 0
+                            ? isSearching
+                              ? 'Searching across Nepal...'
+                              : 'No places found'
+                            : `Found ${searchResults.length} ${
+                                searchResults.length === 1 ? 'location' : 'locations'
+                              }`}
+                        </span>
+                      </div>
+
+                      {searchResults.length === 0 && !isSearching ? (
+                        <div className="py-7 px-4 text-center">
+                          <Compass className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" strokeWidth={1.5} />
+                          <p className="text-xs font-bold text-foreground">
+                            No locations match &ldquo;{searchQuery}&rdquo;
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-1 max-w-xs mx-auto">
+                            Try searching for a nearby landmark, municipality, or district (e.g., Kaski, Solukhumbu, Bandipur).
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="overflow-y-auto divide-y divide-border/40 py-1">
+                          {searchResults.map((result, idx) => (
+                            <button
+                              key={result.id}
+                              type="button"
+                              onClick={() => handleSelectSearchResult(result)}
+                              className={`group w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors ${
+                                highlightedIndex === idx
+                                  ? 'bg-muted text-foreground'
+                                  : 'hover:bg-muted/60 text-foreground/90'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+                                  <MapPin className="h-4 w-4" />
+                                </div>
+                                <div className="truncate">
+                                  <p className="truncate text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                                    {result.text}
+                                  </p>
+                                  <p className="truncate text-[11px] text-muted-foreground mt-0.5">
+                                    {result.placeName}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="rounded-lg p-1 text-muted-foreground group-hover:text-primary transition-colors shrink-0">
+                                <ChevronRight className="h-4 w-4" />
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between border-t border-border/60 bg-muted/30 px-3.5 py-1.5 text-[10px] text-muted-foreground">
+                        <span>↑↓ to navigate · Enter to pin · Esc to close</span>
+                        <span className="font-medium text-primary">Mapbox PostGIS</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Near Me Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleUseCurrentLocation}
+              disabled={isLocating}
+              className="pointer-events-auto shrink-0 h-10 px-3 rounded-2xl border border-border/80 bg-background/95 hover:bg-background text-foreground shadow-sm backdrop-blur-xl transition-all active:scale-[0.98]"
+            >
+              {isLocating ? (
+                <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
+              ) : (
+                <Navigation className="h-4 w-4 text-[#FF8500]" />
+              )}
+              <span className="hidden sm:inline text-xs font-semibold">Near Me</span>
+            </Button>
+
+            {/* Pin Status Pill */}
+            <div className="pointer-events-auto hidden sm:flex items-center shrink-0 h-10 px-3 rounded-2xl border border-border/80 bg-background/95 text-xs font-semibold text-foreground shadow-sm backdrop-blur-xl">
+              <span className="h-2 w-2 rounded-full bg-[#FF8500] mr-2 animate-pulse" />
+              <span>Pin Dropped</span>
+            </div>
           </div>
 
-          {/* Autocomplete Dropdown */}
-          {showDropdown && searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-11 max-h-60 overflow-y-auto rounded-xl border border-border bg-background/95 p-1.5 shadow-xl backdrop-blur-md">
-              {searchResults.map((result) => (
-                <button
-                  key={result.id}
-                  type="button"
-                  onClick={() => handleSelectSearchResult(result)}
-                  className="flex w-full items-start gap-2.5 rounded-lg p-2 text-left text-xs transition-colors hover:bg-muted"
-                >
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                  <div>
-                    <span className="font-semibold text-foreground">{result.text}</span>
-                    <p className="line-clamp-1 text-[11px] text-muted-foreground">
-                      {result.placeName}
-                    </p>
-                  </div>
-                </button>
-              ))}
+          {/* Desktop Right Controls: Camera Views & Layer Switcher (Visible on lg+) */}
+          <div className="pointer-events-auto hidden lg:flex items-center gap-2 shrink-0 pr-12">
+            {/* Camera Views */}
+            <div className="flex items-center rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => handleCameraPreset('overview')}
+                title="Full 2D Flat Overview of Nepal"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activePreset === 'overview'
+                    ? 'bg-[#FF8500] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                <span>Flat</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCameraPreset('cinematic')}
+                title="3D Cinematic Slanted Perspective"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activePreset === 'cinematic'
+                    ? 'bg-[#FF8500] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Compass className="h-3.5 w-3.5" />
+                <span>3D Tilt</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCameraPreset('mountain')}
+                title="High Himalayas Dramatic View"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activePreset === 'mountain'
+                    ? 'bg-[#FF8500] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Mountain className="h-3.5 w-3.5" />
+                <span>Himalayas</span>
+              </button>
             </div>
-          )}
+
+            {/* Style Layer Toggle (Terrain vs Satellite) */}
+            <div className="flex items-center rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => handleToggleLayer('outdoors')}
+                title="Topographic Terrain with 3D Elevation"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activeLayer === 'outdoors'
+                    ? 'bg-foreground text-background shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5" />
+                <span>Terrain</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleLayer('satellite')}
+                title="Photorealistic Satellite Imagery"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activeLayer === 'satellite'
+                    ? 'bg-foreground text-background shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Satellite className="h-3.5 w-3.5" />
+                <span>Satellite</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Use Current Location Button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleUseCurrentLocation}
-          disabled={isLocating}
-          className="h-10 shrink-0 gap-1.5 rounded-xl border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md hover:bg-background"
-        >
-          {isLocating ? (
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          ) : (
-            <Navigation className="h-4 w-4 text-primary" />
-          )}
-          <span className="hidden sm:inline text-xs font-semibold">Near Me</span>
-        </Button>
+        {/* Row 2: Always-Visible Map View & Layer Options on Mobile & Tablet (< lg) */}
+        <div className="pointer-events-auto flex lg:hidden items-center justify-between gap-1.5 overflow-x-auto py-0.5 no-scrollbar pr-12">
+          {/* Mobile Camera Presets */}
+          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur-xl shrink-0">
+            <button
+              type="button"
+              onClick={() => handleCameraPreset('overview')}
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
+                activePreset === 'overview'
+                  ? 'bg-[#FF8500] text-white shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Maximize2 className="h-3 w-3" />
+              <span>Flat</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleCameraPreset('cinematic')}
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
+                activePreset === 'cinematic'
+                  ? 'bg-[#FF8500] text-white shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Compass className="h-3 w-3" />
+              <span>3D Tilt</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleCameraPreset('mountain')}
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
+                activePreset === 'mountain'
+                  ? 'bg-[#FF8500] text-white shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Mountain className="h-3 w-3" />
+              <span>Himalayas</span>
+            </button>
+          </div>
+
+          {/* Mobile Layer Switcher */}
+          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur-xl shrink-0">
+            <button
+              type="button"
+              onClick={() => handleToggleLayer('outdoors')}
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
+                activeLayer === 'outdoors'
+                  ? 'bg-foreground text-background shadow-xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Layers className="h-3 w-3" />
+              <span>Terrain</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleToggleLayer('satellite')}
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
+                activeLayer === 'satellite'
+                  ? 'bg-foreground text-background shadow-xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Satellite className="h-3 w-3" />
+              <span>Satellite</span>
+            </button>
+          </div>
+
+          {/* Mobile Pin status pill */}
+          <div className="flex sm:hidden items-center shrink-0 px-2 py-1 rounded-xl border border-border/80 bg-background/95 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur-xl">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#FF8500] mr-1 animate-pulse" />
+            <span className="text-muted-foreground text-[10px]">Pin Set</span>
+          </div>
+        </div>
       </div>
 
       {/* ── Map Container ──────────────────────────────────────────────────────── */}
@@ -351,33 +818,47 @@ export function LocationPickerMap({
 
       {/* ── Status Alert Message if any ────────────────────────────────────────── */}
       {locationStatus && (
-        <div className="absolute top-16 left-3 right-3 z-10 flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/90 px-3 py-2 text-xs text-destructive-foreground shadow-md backdrop-blur-md">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{locationStatus}</span>
+        <div className="absolute top-24 left-3 right-3 z-30 flex items-center justify-between gap-2 rounded-xl border border-destructive/30 bg-destructive/95 px-3.5 py-2.5 text-xs text-destructive-foreground shadow-lg backdrop-blur-md animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{locationStatus}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLocationStatus(null)}
+            className="rounded p-0.5 hover:bg-black/20"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
         </div>
       )}
 
       {/* ── Bottom Floating Bar: Active Coordinates & Address ──────────────────── */}
-      <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-background/95 px-3.5 py-2 text-xs text-foreground shadow-md backdrop-blur-md">
+      <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-background/95 p-3 text-xs text-foreground shadow-md backdrop-blur-xl">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Check className="h-3 w-3 stroke-[3]" />
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#FF8500]/15 text-[#FF8500] border border-[#FF8500]/25">
+            <Gem className="h-3.5 w-3.5" />
           </span>
           <div className="min-w-0">
-            <p className="line-clamp-1 font-medium text-foreground">
-              {currentAddress || 'Drop the pin on the exact location'}
+            <p className="line-clamp-1 font-bold text-foreground text-xs sm:text-sm">
+              {currentAddress || 'Drop the pin on the exact location in Nepal'}
             </p>
             {value && (
-              <p className="text-[10px] text-muted-foreground font-mono">
-                {value.lat.toFixed(5)}° N, {value.lng.toFixed(5)}° E
+              <p className="text-[11px] text-muted-foreground font-mono flex items-center gap-1.5 mt-0.5">
+                <span className="text-foreground/80 font-medium">GPS:</span>
+                <span>
+                  {value.lat.toFixed(5)}° N, {value.lng.toFixed(5)}° E
+                </span>
               </p>
             )}
           </div>
         </div>
 
-        <span className="shrink-0 text-[11px] font-medium text-muted-foreground hidden sm:inline">
-          Drag pin or click map to adjust
-        </span>
+        <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <span className="rounded-lg bg-muted/60 border border-border/60 px-2 py-1 text-[11px] font-medium text-muted-foreground">
+            Drag pin or click map to adjust
+          </span>
+        </div>
       </div>
     </div>
   );

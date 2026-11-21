@@ -173,7 +173,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
           value={coords}
           onChange={setCoords}
           onLocationDetails={handleLocationDetails}
-          className="h-[420px] w-full"
+          className="h-[460px] md:h-[520px] w-full"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
