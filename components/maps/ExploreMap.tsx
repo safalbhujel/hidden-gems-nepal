@@ -463,11 +463,11 @@ export function ExploreMap({
   return (
     <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border bg-muted/20 ${className}`}>
       {/* ── Floating Map Top Controls Overlay (Z-Index 30) ────────────────── */}
-      <div className="pointer-events-none absolute inset-x-0 top-3 z-30 px-3 sm:px-4 flex flex-col gap-2">
+      <div className="pointer-events-none absolute inset-x-0 top-3 z-30 px-3 sm:px-4">
         {/* Row 1: Spacious Search Dialogue Bar + Quick Actions (Desktop & Mobile) */}
         <div className="flex items-center justify-between gap-2.5">
           {/* Left: Expansive Place Search Bar */}
-          <div className="flex items-center gap-2 flex-1 max-w-full lg:max-w-2xl xl:max-w-3xl">
+          <div className="flex items-center gap-2 flex-1 max-w-full lg:max-w-3xl xl:max-w-4xl">
             {/* Search Dialogue Box */}
             <div ref={searchContainerRef} className="pointer-events-auto relative flex-1">
               {/* Search Trigger Bar */}
@@ -751,8 +751,8 @@ export function ExploreMap({
 
           </div>
 
-          {/* Desktop Right Controls: Near Me, Gems Count, Camera Views & Layer Switcher (Visible on lg+) */}
-          <div className="pointer-events-auto hidden lg:flex items-center gap-2.5 shrink-0 pr-12">
+          {/* Desktop Right Controls: Near Me & Gems Count (Visible on sm+) */}
+          <div className="pointer-events-auto hidden sm:flex items-center gap-2.5 shrink-0 pr-12">
             {/* Near Me Button */}
             <Button
               type="button"
@@ -770,163 +770,10 @@ export function ExploreMap({
               <span className="text-xs font-semibold">Near Me</span>
             </Button>
 
-            {/* Gem Count Pill (Desktop) */}
+            {/* Gem Count Pill */}
             <div className="flex items-center shrink-0 h-11 px-3.5 rounded-2xl border border-border/80 bg-background/95 text-xs font-semibold text-foreground shadow-sm backdrop-blur-xl">
               <span className="text-[#FF8500] font-bold mr-1">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'}
             </div>
-            {/* Camera Views */}
-            <div className="flex items-center h-11 rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
-              <button
-                type="button"
-                onClick={() => handleCameraPreset('overview')}
-                title="Full 2D Flat Overview of Nepal"
-                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
-                  activePreset === 'overview'
-                    ? 'bg-[#FF8500] text-white shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-                <span>Flat</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCameraPreset('cinematic')}
-                title="3D Cinematic Slanted Perspective"
-                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
-                  activePreset === 'cinematic'
-                    ? 'bg-[#FF8500] text-white shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Compass className="h-3.5 w-3.5" />
-                <span>3D Tilt</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleCameraPreset('mountain')}
-                title="High Himalayas Dramatic View"
-                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
-                  activePreset === 'mountain'
-                    ? 'bg-[#FF8500] text-white shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Mountain className="h-3.5 w-3.5" />
-                <span>Himalayas</span>
-              </button>
-            </div>
-
-            {/* Style Layer Toggle (Terrain vs Satellite) */}
-            <div className="flex items-center h-11 rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
-              <button
-                type="button"
-                onClick={() => handleToggleLayer('outdoors')}
-                title="Topographic Terrain with 3D Elevation"
-                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
-                  activeLayer === 'outdoors'
-                    ? 'bg-foreground text-background shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span>Terrain</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleToggleLayer('satellite')}
-                title="Photorealistic Satellite Imagery"
-                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
-                  activeLayer === 'satellite'
-                    ? 'bg-foreground text-background shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Satellite className="h-3.5 w-3.5" />
-                <span>Satellite</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Always-Visible Map View & Layer Options on Mobile & Tablet (< lg) */}
-        <div className="pointer-events-auto flex lg:hidden items-center justify-between gap-1.5 overflow-x-auto py-0.5 no-scrollbar pr-12">
-          {/* Mobile Camera Presets */}
-          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur-xl shrink-0">
-            <button
-              type="button"
-              onClick={() => handleCameraPreset('overview')}
-              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
-                activePreset === 'overview'
-                  ? 'bg-[#FF8500] text-white shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Maximize2 className="h-3 w-3" />
-              <span>Flat</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleCameraPreset('cinematic')}
-              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
-                activePreset === 'cinematic'
-                  ? 'bg-[#FF8500] text-white shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Compass className="h-3 w-3" />
-              <span>3D Tilt</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleCameraPreset('mountain')}
-              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
-                activePreset === 'mountain'
-                  ? 'bg-[#FF8500] text-white shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Mountain className="h-3 w-3" />
-              <span>Himalayas</span>
-            </button>
-          </div>
-
-          {/* Mobile Layer Switcher */}
-          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur-xl shrink-0">
-            <button
-              type="button"
-              onClick={() => handleToggleLayer('outdoors')}
-              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
-                activeLayer === 'outdoors'
-                  ? 'bg-foreground text-background shadow-xs font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Layers className="h-3 w-3" />
-              <span>Terrain</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleToggleLayer('satellite')}
-              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
-                activeLayer === 'satellite'
-                  ? 'bg-foreground text-background shadow-xs font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Satellite className="h-3 w-3" />
-              <span>Satellite</span>
-            </button>
-          </div>
-
-          {/* Mobile Gem count (if sm hidden) */}
-          <div className="flex sm:hidden items-center shrink-0 px-2 py-1 rounded-xl border border-border/80 bg-background/95 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur-xl">
-            <span className="text-[#FF8500] font-bold mr-0.5">{places.length}</span>
-            <span className="text-muted-foreground">gems</span>
           </div>
         </div>
       </div>
@@ -934,9 +781,87 @@ export function ExploreMap({
       {/* ── Map Container ────────────────────────────────────────────────────── */}
       <div ref={mapContainerRef} className="h-full w-full" />
 
+      {/* ── Floating Map Tools Dock: Layers & Camera Views (Z-Index 20) ────── */}
+      <div className="pointer-events-auto absolute bottom-4 left-3.5 sm:left-4 z-20 flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[calc(100%-1.75rem)]">
+        {/* Style Layer Toggle (Terrain vs Satellite) */}
+        <div className="flex items-center h-10 rounded-2xl border border-border/80 bg-background/95 dark:bg-background/90 p-1 shadow-md backdrop-blur-xl shrink-0">
+          <button
+            type="button"
+            onClick={() => handleToggleLayer('outdoors')}
+            title="Topographic Terrain with 3D Elevation"
+            className={`flex items-center gap-1.5 rounded-xl h-8 px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer ${
+              activeLayer === 'outdoors'
+                ? 'bg-foreground text-background shadow-xs font-bold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            <span>Terrain</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleToggleLayer('satellite')}
+            title="Photorealistic Satellite Imagery"
+            className={`flex items-center gap-1.5 rounded-xl h-8 px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer ${
+              activeLayer === 'satellite'
+                ? 'bg-foreground text-background shadow-xs font-bold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Satellite className="h-3.5 w-3.5" />
+            <span>Satellite</span>
+          </button>
+        </div>
+
+        {/* Camera Views (Flat / 3D Tilt / Himalayas) */}
+        <div className="flex items-center h-10 rounded-2xl border border-border/80 bg-background/95 dark:bg-background/90 p-1 shadow-md backdrop-blur-xl shrink-0">
+          <button
+            type="button"
+            onClick={() => handleCameraPreset('overview')}
+            title="Full 2D Flat Overview of Nepal"
+            className={`flex items-center gap-1.5 rounded-xl h-8 px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer ${
+              activePreset === 'overview'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            <span>Flat</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCameraPreset('cinematic')}
+            title="3D Cinematic Slanted Perspective"
+            className={`flex items-center gap-1.5 rounded-xl h-8 px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer ${
+              activePreset === 'cinematic'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Compass className="h-3.5 w-3.5" />
+            <span>3D Tilt</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCameraPreset('mountain')}
+            title="High Himalayas Dramatic View"
+            className={`flex items-center gap-1.5 rounded-xl h-8 px-2.5 sm:px-3 text-xs font-semibold transition-all cursor-pointer ${
+              activePreset === 'mountain'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Mountain className="h-3.5 w-3.5" />
+            <span>Himalayas</span>
+          </button>
+        </div>
+      </div>
+
       {/* ── Instagram / Story Style Floating Place Card ──────────────────────── */}
       {activePlace && (
-        <div className="absolute bottom-4 left-4 right-4 z-20 sm:left-auto sm:right-4 sm:w-[380px] animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="absolute bottom-4 left-4 right-4 z-30 sm:left-auto sm:right-4 sm:w-[380px] animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="relative flex gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-background/95 p-3.5 text-foreground shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)] backdrop-blur-xl">
             {/* Close Button */}
             <button
