@@ -14,6 +14,7 @@ import {
   Loader2,
   Mountain,
   Layers,
+  Satellite,
   Maximize2,
   Gem,
   Search,
@@ -427,290 +428,367 @@ export function ExploreMap({
   return (
     <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border bg-muted/20 ${className}`}>
       {/* ── Floating Map Top Controls Overlay (Z-Index 30) ────────────────── */}
-      <div className="pointer-events-none absolute inset-x-0 top-3 z-30 px-3 sm:px-4 flex flex-col md:flex-row md:items-start md:justify-between gap-2.5">
-        
-        {/* Left: Near Me & Gem Count (Desktop) */}
-        <div className="pointer-events-auto hidden md:flex items-center gap-2 shrink-0 order-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleFindNearMe}
-            disabled={isLocating}
-            className="gap-2 rounded-xl border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md active:scale-[0.98] transition-transform hover:bg-background"
-          >
-            {isLocating ? (
-              <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
-            ) : (
-              <Navigation className="h-4 w-4 text-[#FF8500]" />
-            )}
-            <span className="text-xs font-semibold">Near Me</span>
-          </Button>
-
-          <div className="rounded-xl border border-border/80 bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur-md">
-            <span className="text-[#FF8500] font-bold">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'}
-          </div>
-        </div>
-
-        {/* Center: Beautiful Place Search Dialogue Box */}
-        <div
-          ref={searchContainerRef}
-          className="pointer-events-auto relative w-full md:w-[380px] lg:w-[420px] md:mx-auto order-1 md:order-2"
-        >
-          {/* Search Trigger Bar */}
-          <div
-            className={`group relative flex items-center h-10 w-full rounded-2xl border transition-all duration-200 bg-background/95 dark:bg-background/90 backdrop-blur-xl shadow-[0_8px_25px_rgba(0,0,0,0.12)] ${
-              isSearchOpen
-                ? 'border-[#FF8500] ring-2 ring-[#FF8500]/25'
-                : 'border-border/80 hover:border-border'
-            }`}
-          >
-            <div className="pl-3.5 pr-1.5 text-muted-foreground group-focus-within:text-[#FF8500] transition-colors">
-              <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            </div>
-
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setHighlightedIndex(0);
-                if (!isSearchOpen) setIsSearchOpen(true);
-              }}
-              onFocus={() => setIsSearchOpen(true)}
-              placeholder="Search gems, districts, or vibes..."
-              className="w-full bg-transparent pr-2 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
-            />
-
-            {searchQuery ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setHighlightedIndex(0);
-                  searchInputRef.current?.focus();
-                }}
-                className="mr-2.5 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                title="Clear query"
+      <div className="pointer-events-none absolute inset-x-0 top-3 z-30 px-3 sm:px-4 flex flex-col gap-2">
+        {/* Row 1: Search Dialogue Bar + Quick Actions (Desktop & Mobile) */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Place Search Bar + Near Me + Gem Count */}
+          <div className="flex items-center gap-2 flex-1 max-w-full sm:max-w-md lg:max-w-lg">
+            {/* Search Dialogue Box */}
+            <div ref={searchContainerRef} className="pointer-events-auto relative flex-1">
+              {/* Search Trigger Bar */}
+              <div
+                className={`group relative flex items-center h-10 w-full rounded-2xl border transition-all duration-200 bg-background/95 dark:bg-background/90 backdrop-blur-xl shadow-[0_8px_25px_rgba(0,0,0,0.10)] ${
+                  isSearchOpen
+                    ? 'border-[#FF8500] ring-2 ring-[#FF8500]/25'
+                    : 'border-border/80 hover:border-border'
+                }`}
               >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <div className="mr-3 hidden sm:flex items-center gap-1">
-                <kbd className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                  ⌘K
-                </kbd>
+                <div className="pl-3.5 pr-1.5 text-muted-foreground group-focus-within:text-[#FF8500] transition-colors">
+                  <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                </div>
+
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setHighlightedIndex(0);
+                    if (!isSearchOpen) setIsSearchOpen(true);
+                  }}
+                  onFocus={() => setIsSearchOpen(true)}
+                  placeholder="Search gems, districts, or vibes..."
+                  className="w-full bg-transparent pr-2 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                />
+
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setHighlightedIndex(0);
+                      searchInputRef.current?.focus();
+                    }}
+                    className="mr-2.5 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    title="Clear query"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : (
+                  <div className="mr-3 hidden sm:flex items-center gap-1">
+                    <kbd className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                      ⌘K
+                    </kbd>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* ── Floating Search Dialogue Panel ───────────────────────────── */}
-          {isSearchOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 z-40 overflow-hidden rounded-2xl border border-border/80 bg-background/98 dark:bg-background/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] animate-in fade-in-0 zoom-in-95 duration-150">
-              
-              {/* Quick Query Pills when search input is empty */}
-              {!searchQuery.trim() ? (
-                <div className="p-3.5 space-y-3.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <span>Curated Discovery</span>
-                    <span className="text-[10px] font-normal lowercase">{places.length} gems mapped</span>
-                  </div>
+              {/* ── Floating Search Dialogue Panel ───────────────────────────── */}
+              {isSearchOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 overflow-hidden rounded-2xl border border-border/80 bg-background/98 dark:bg-background/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] animate-in fade-in-0 zoom-in-95 duration-150">
+                  {/* Quick Query Pills when search input is empty */}
+                  {!searchQuery.trim() ? (
+                    <div className="p-3.5 space-y-3.5">
+                      <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <span>Curated Discovery</span>
+                        <span className="text-[10px] font-normal lowercase">{places.length} gems mapped</span>
+                      </div>
 
-                  {/* Filter chips */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {QUICK_FILTERS.map((filter) => (
-                      <button
-                        key={filter.label}
-                        type="button"
-                        onClick={() => {
-                          setSearchQuery(filter.query);
-                          setHighlightedIndex(0);
-                        }}
-                        className="rounded-full border border-border/80 bg-muted/40 hover:bg-primary/10 hover:border-primary/40 hover:text-primary px-3 py-1 text-xs font-semibold text-foreground/80 transition-colors"
-                      >
-                        {filter.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Highest Rated Highlights */}
-                  {topRatedPlaces.length > 0 && (
-                    <div className="space-y-1.5 pt-2 border-t border-border/60">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Top Rated Across Nepal
-                      </p>
-                      <div className="space-y-1">
-                        {topRatedPlaces.map((place, idx) => (
-                          <div
-                            key={place.id}
-                            onClick={() => handleFlyToPlace(place)}
-                            className={`flex items-center justify-between gap-2.5 rounded-xl p-2 cursor-pointer transition-colors ${
-                              highlightedIndex === idx
-                                ? 'bg-muted text-foreground'
-                                : 'hover:bg-muted/60 text-foreground/90'
-                            }`}
+                      {/* Filter chips */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {QUICK_FILTERS.map((filter) => (
+                          <button
+                            key={filter.label}
+                            type="button"
+                            onClick={() => {
+                              setSearchQuery(filter.query);
+                              setHighlightedIndex(0);
+                            }}
+                            className="rounded-full border border-border/80 bg-muted/40 hover:bg-primary/10 hover:border-primary/40 hover:text-primary px-3 py-1 text-xs font-semibold text-foreground/80 transition-colors"
                           >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-muted border border-border/60">
-                                {place.cover_image_url ? (
-                                  <Image
-                                    src={place.cover_image_url}
-                                    alt={place.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="36px"
-                                  />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-primary">
-                                    <CategoryIcon slug={place.category?.slug} name={place.category?.name} className="h-4 w-4" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="truncate">
-                                <p className="truncate text-xs font-bold">{place.name}</p>
-                                <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                  <span>{place.district?.name}</span>
-                                  {place.category && <span>· {place.category.name}</span>}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-500 shrink-0">
-                              <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                              <span>{place.average_rating > 0 ? place.average_rating.toFixed(1) : 'New'}</span>
-                            </div>
-                          </div>
+                            {filter.label}
+                          </button>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Results List when query is active */
-                <div className="max-h-[320px] flex flex-col">
-                  {/* Results Header */}
-                  <div className="flex items-center justify-between px-3.5 py-2 border-b border-border/60 text-[11px] font-semibold text-muted-foreground bg-muted/20">
-                    <span>
-                      {filteredPlaces.length === 0
-                        ? 'No matches found'
-                        : `Found ${filteredPlaces.length} ${
-                            filteredPlaces.length === 1 ? 'gem' : 'gems'
-                          }`}
-                    </span>
 
-                    {filteredPlaces.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={handleFitAllMatches}
-                        className="text-[11px] font-bold text-primary hover:underline"
-                      >
-                        Fit all on map
-                      </button>
-                    )}
-                  </div>
-
-                  {filteredPlaces.length === 0 ? (
-                    <div className="py-8 px-4 text-center">
-                      <Compass className="h-7 w-7 text-muted-foreground/30 mx-auto mb-2" strokeWidth={1.5} />
-                      <p className="text-xs font-bold text-foreground">
-                        No places match &ldquo;{searchQuery}&rdquo;
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-1 max-w-xs mx-auto">
-                        Try searching by district name (e.g. Kaski, Mustang, Ilam) or category (e.g. Waterfall, Trail).
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="overflow-y-auto divide-y divide-border/40 py-1">
-                      {filteredPlaces.map((place, idx) => (
-                        <div
-                          key={place.id}
-                          onClick={() => handleFlyToPlace(place)}
-                          className={`group flex items-center justify-between gap-3 px-3.5 py-2.5 cursor-pointer transition-colors ${
-                            highlightedIndex === idx
-                              ? 'bg-muted text-foreground'
-                              : 'hover:bg-muted/60 text-foreground/90'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            {/* Thumbnail + Score */}
-                            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-muted border border-border/60">
-                              {place.cover_image_url ? (
-                                <Image
-                                  src={place.cover_image_url}
-                                  alt={place.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="44px"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-primary">
-                                  <CategoryIcon slug={place.category?.slug} name={place.category?.name} className="h-5 w-5" />
+                      {/* Highest Rated Highlights */}
+                      {topRatedPlaces.length > 0 && (
+                        <div className="space-y-1.5 pt-2 border-t border-border/60">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Top Rated Across Nepal
+                          </p>
+                          <div className="space-y-1">
+                            {topRatedPlaces.map((place, idx) => (
+                              <div
+                                key={place.id}
+                                onClick={() => handleFlyToPlace(place)}
+                                className={`flex items-center justify-between gap-2.5 rounded-xl p-2 cursor-pointer transition-colors ${
+                                  highlightedIndex === idx
+                                    ? 'bg-muted text-foreground'
+                                    : 'hover:bg-muted/60 text-foreground/90'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-muted border border-border/60">
+                                    {place.cover_image_url ? (
+                                      <Image
+                                        src={place.cover_image_url}
+                                        alt={place.name}
+                                        fill
+                                        className="object-cover"
+                                        sizes="36px"
+                                      />
+                                    ) : (
+                                      <div className="flex h-full w-full items-center justify-center text-primary">
+                                        <CategoryIcon slug={place.category?.slug} name={place.category?.name} className="h-4 w-4" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="truncate">
+                                    <p className="truncate text-xs font-bold">{place.name}</p>
+                                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                      <span>{place.district?.name}</span>
+                                      {place.category && <span>· {place.category.name}</span>}
+                                    </p>
+                                  </div>
                                 </div>
-                              )}
-                              <div className="absolute bottom-0.5 right-0.5 flex items-center gap-0.5 rounded-sm bg-black/80 px-1 text-[9px] font-bold text-[#FF8500]">
-                                <Gem className="h-2 w-2" />
-                                <span>{place.hidden_score.toFixed(1)}</span>
+
+                                <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-500 shrink-0">
+                                  <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                                  <span>{place.average_rating > 0 ? place.average_rating.toFixed(1) : 'New'}</span>
+                                </div>
                               </div>
-                            </div>
-
-                            {/* Place Details */}
-                            <div className="truncate">
-                              <p className="truncate text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                                {place.name}
-                              </p>
-                              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3 text-primary shrink-0" />
-                                  <span className="font-medium text-foreground/80">{place.district?.name}</span>
-                                </span>
-                                {place.category && (
-                                  <>
-                                    <span>·</span>
-                                    <span>{place.category.name}</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Fly to indicator */}
-                          <div className="flex items-center gap-2 shrink-0">
-                            <div className="flex items-center gap-1 text-xs font-semibold text-amber-500">
-                              <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                              <span>{place.average_rating > 0 ? place.average_rating.toFixed(1) : 'New'}</span>
-                            </div>
-
-                            <div className="rounded-lg p-1 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                              <ChevronRight className="h-4 w-4" />
-                            </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
+                      )}
+                    </div>
+                  ) : (
+                    /* Results List when query is active */
+                    <div className="max-h-[320px] flex flex-col">
+                      {/* Results Header */}
+                      <div className="flex items-center justify-between px-3.5 py-2 border-b border-border/60 text-[11px] font-semibold text-muted-foreground bg-muted/20">
+                        <span>
+                          {filteredPlaces.length === 0
+                            ? 'No matches found'
+                            : `Found ${filteredPlaces.length} ${
+                                filteredPlaces.length === 1 ? 'gem' : 'gems'
+                              }`}
+                        </span>
+
+                        {filteredPlaces.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={handleFitAllMatches}
+                            className="text-[11px] font-bold text-primary hover:underline"
+                          >
+                            Fit all on map
+                          </button>
+                        )}
+                      </div>
+
+                      {filteredPlaces.length === 0 ? (
+                        <div className="py-8 px-4 text-center">
+                          <Compass className="h-7 w-7 text-muted-foreground/30 mx-auto mb-2" strokeWidth={1.5} />
+                          <p className="text-xs font-bold text-foreground">
+                            No places match &ldquo;{searchQuery}&rdquo;
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-1 max-w-xs mx-auto">
+                            Try searching by district name (e.g. Kaski, Mustang, Ilam) or category (e.g. Waterfall, Trail).
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="overflow-y-auto divide-y divide-border/40 py-1">
+                          {filteredPlaces.map((place, idx) => (
+                            <div
+                              key={place.id}
+                              onClick={() => handleFlyToPlace(place)}
+                              className={`group flex items-center justify-between gap-3 px-3.5 py-2.5 cursor-pointer transition-colors ${
+                                highlightedIndex === idx
+                                  ? 'bg-muted text-foreground'
+                                  : 'hover:bg-muted/60 text-foreground/90'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                {/* Thumbnail + Score */}
+                                <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-muted border border-border/60">
+                                  {place.cover_image_url ? (
+                                    <Image
+                                      src={place.cover_image_url}
+                                      alt={place.name}
+                                      fill
+                                      className="object-cover"
+                                      sizes="44px"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-primary">
+                                      <CategoryIcon slug={place.category?.slug} name={place.category?.name} className="h-5 w-5" />
+                                    </div>
+                                  )}
+                                  <div className="absolute bottom-0.5 right-0.5 flex items-center gap-0.5 rounded-sm bg-black/80 px-1 text-[9px] font-bold text-[#FF8500]">
+                                    <Gem className="h-2 w-2" />
+                                    <span>{place.hidden_score.toFixed(1)}</span>
+                                  </div>
+                                </div>
+
+                                {/* Place Details */}
+                                <div className="truncate">
+                                  <p className="truncate text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                                    {place.name}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3 text-primary shrink-0" />
+                                      <span className="font-medium text-foreground/80">{place.district?.name}</span>
+                                    </span>
+                                    {place.category && (
+                                      <>
+                                        <span>·</span>
+                                        <span>{place.category.name}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Fly to indicator */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex items-center gap-1 text-xs font-semibold text-amber-500">
+                                  <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                                  <span>{place.average_rating > 0 ? place.average_rating.toFixed(1) : 'New'}</span>
+                                </div>
+
+                                <div className="rounded-lg p-1 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                  <ChevronRight className="h-4 w-4" />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  {/* Dialogue Footer */}
+                  <div className="flex items-center justify-between border-t border-border/60 bg-muted/30 px-3.5 py-1.5 text-[10px] text-muted-foreground">
+                    <span className="hidden sm:inline">↑↓ to navigate · Enter to fly to · Esc to close</span>
+                    <span className="sm:hidden">Tap to fly to coordinates</span>
+                    <span className="font-medium text-primary">Live PostGIS</span>
+                  </div>
                 </div>
               )}
-
-              {/* Dialogue Footer */}
-              <div className="flex items-center justify-between border-t border-border/60 bg-muted/30 px-3.5 py-1.5 text-[10px] text-muted-foreground">
-                <span className="hidden sm:inline">↑↓ to navigate · Enter to fly to · Esc to close</span>
-                <span className="sm:hidden">Tap to fly to coordinates</span>
-                <span className="font-medium text-primary">Live PostGIS</span>
-              </div>
             </div>
-          )}
+
+            {/* Near Me Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleFindNearMe}
+              disabled={isLocating}
+              className="pointer-events-auto shrink-0 h-10 px-3 rounded-2xl border border-border/80 bg-background/95 hover:bg-background text-foreground shadow-sm backdrop-blur-xl transition-all active:scale-[0.98]"
+            >
+              {isLocating ? (
+                <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
+              ) : (
+                <Navigation className="h-4 w-4 text-[#FF8500]" />
+              )}
+              <span className="hidden sm:inline text-xs font-semibold">Near Me</span>
+            </Button>
+
+            {/* Gem Count Pill (Desktop) */}
+            <div className="pointer-events-auto hidden sm:flex items-center shrink-0 h-10 px-3 rounded-2xl border border-border/80 bg-background/95 text-xs font-semibold text-foreground shadow-sm backdrop-blur-xl">
+              <span className="text-[#FF8500] font-bold mr-1">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'}
+            </div>
+          </div>
+
+          {/* Desktop Right Controls: Camera Views & Layer Switcher (Visible on lg+) */}
+          <div className="pointer-events-auto hidden lg:flex items-center gap-2 shrink-0 pr-12">
+            {/* Camera Views */}
+            <div className="flex items-center rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => handleCameraPreset('overview')}
+                title="Full 2D Flat Overview of Nepal"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activePreset === 'overview'
+                    ? 'bg-[#FF8500] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                <span>Flat</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCameraPreset('cinematic')}
+                title="3D Cinematic Slanted Perspective"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activePreset === 'cinematic'
+                    ? 'bg-[#FF8500] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Compass className="h-3.5 w-3.5" />
+                <span>3D Tilt</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCameraPreset('mountain')}
+                title="High Himalayas Dramatic View"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activePreset === 'mountain'
+                    ? 'bg-[#FF8500] text-white shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Mountain className="h-3.5 w-3.5" />
+                <span>Himalayas</span>
+              </button>
+            </div>
+
+            {/* Style Layer Toggle (Terrain vs Satellite) */}
+            <div className="flex items-center rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => handleToggleLayer('outdoors')}
+                title="Topographic Terrain with 3D Elevation"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activeLayer === 'outdoors'
+                    ? 'bg-foreground text-background shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5" />
+                <span>Terrain</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleLayer('satellite')}
+                title="Photorealistic Satellite Imagery"
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                  activeLayer === 'satellite'
+                    ? 'bg-foreground text-background shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Satellite className="h-3.5 w-3.5" />
+                <span>Satellite</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Right: Camera Views & Layer Switcher (Desktop) */}
-        <div className="pointer-events-auto hidden md:flex items-center gap-2 shrink-0 pr-12 order-3">
-          {/* Camera Views */}
-          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-1 shadow-md backdrop-blur-md">
+        {/* Row 2: Always-Visible Map View & Layer Options on Mobile & Tablet (< lg) */}
+        <div className="pointer-events-auto flex lg:hidden items-center justify-between gap-1.5 overflow-x-auto py-0.5 no-scrollbar pr-12">
+          {/* Mobile Camera Presets */}
+          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur-xl shrink-0">
             <button
               type="button"
               onClick={() => handleCameraPreset('overview')}
-              title="Full Flat Overview"
-              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
                 activePreset === 'overview'
                   ? 'bg-[#FF8500] text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -723,8 +801,7 @@ export function ExploreMap({
             <button
               type="button"
               onClick={() => handleCameraPreset('cinematic')}
-              title="3D Cinematic Slant"
-              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
                 activePreset === 'cinematic'
                   ? 'bg-[#FF8500] text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -737,8 +814,7 @@ export function ExploreMap({
             <button
               type="button"
               onClick={() => handleCameraPreset('mountain')}
-              title="High Himalayas Dramatic View"
-              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
                 activePreset === 'mountain'
                   ? 'bg-[#FF8500] text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -749,14 +825,14 @@ export function ExploreMap({
             </button>
           </div>
 
-          {/* Style Layer Toggle (Terrain vs Satellite) */}
-          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-1 shadow-md backdrop-blur-md">
+          {/* Mobile Layer Switcher */}
+          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur-xl shrink-0">
             <button
               type="button"
               onClick={() => handleToggleLayer('outdoors')}
-              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
                 activeLayer === 'outdoors'
-                  ? 'bg-foreground text-background shadow-xs'
+                  ? 'bg-foreground text-background shadow-xs font-bold'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -766,55 +842,21 @@ export function ExploreMap({
             <button
               type="button"
               onClick={() => handleToggleLayer('satellite')}
-              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition-all ${
                 activeLayer === 'satellite'
-                  ? 'bg-foreground text-background shadow-xs'
+                  ? 'bg-foreground text-background shadow-xs font-bold'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
+              <Satellite className="h-3 w-3" />
               <span>Satellite</span>
             </button>
           </div>
-        </div>
 
-        {/* Mobile secondary row: Near Me + Layer/View pills */}
-        <div className="pointer-events-auto flex md:hidden items-center justify-between gap-2 order-2 pr-11">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleFindNearMe}
-            disabled={isLocating}
-            className="h-8 gap-1.5 rounded-xl border border-border/80 bg-background/95 text-foreground shadow-xs text-xs font-semibold"
-          >
-            {isLocating ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#FF8500]" />
-            ) : (
-              <Navigation className="h-3.5 w-3.5 text-[#FF8500]" />
-            )}
-            <span>Near Me</span>
-          </Button>
-
-          <div className="flex items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-xs text-xs">
-            <button
-              type="button"
-              onClick={() => handleCameraPreset(activePreset === 'overview' ? 'cinematic' : 'overview')}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 font-semibold text-muted-foreground hover:text-foreground"
-            >
-              <Compass className="h-3 w-3 text-[#FF8500]" />
-              <span>{activePreset === 'overview' ? '3D' : 'Flat'}</span>
-            </button>
-
-            <span className="text-border">·</span>
-
-            <button
-              type="button"
-              onClick={() => handleToggleLayer(activeLayer === 'satellite' ? 'outdoors' : 'satellite')}
-              className="flex items-center gap-1 rounded-lg px-2 py-1 font-semibold text-muted-foreground hover:text-foreground"
-            >
-              <Layers className="h-3 w-3 text-foreground" />
-              <span>{activeLayer === 'satellite' ? 'Terrain' : 'Sat'}</span>
-            </button>
+          {/* Mobile Gem count (if sm hidden) */}
+          <div className="flex sm:hidden items-center shrink-0 px-2 py-1 rounded-xl border border-border/80 bg-background/95 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur-xl">
+            <span className="text-[#FF8500] font-bold mr-0.5">{places.length}</span>
+            <span className="text-muted-foreground">gems</span>
           </div>
         </div>
       </div>
