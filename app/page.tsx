@@ -71,7 +71,7 @@ export default async function HomePage() {
         />
 
         <div className="container relative mx-auto max-w-4xl px-4 text-center">
-          {/* Logo */}
+          {/* Logo with high visibility and dark mode contrast */}
           <div className="mb-8 flex justify-center">
             <Image
               src="/icons/HiddenGemsNepal_Affinity.svg"
@@ -79,7 +79,15 @@ export default async function HomePage() {
               width={280}
               height={210}
               priority
-              className="h-20 w-auto object-contain md:h-28"
+              className="h-20 w-auto object-contain md:h-28 dark:hidden"
+            />
+            <Image
+              src="/icons/HiddenGemsNepal_Affinityy.svg"
+              alt="HiddenGems Nepal"
+              width={280}
+              height={210}
+              priority
+              className="hidden h-20 w-auto object-contain md:h-28 dark:block"
             />
           </div>
 
@@ -204,14 +212,14 @@ export default async function HomePage() {
       */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto max-w-4xl px-4 text-center">
-          {/* Mini logo in white for CTA section */}
-          <div className="flex justify-center mb-6 opacity-90">
+          {/* Mini logo in crisp white vector for CTA section */}
+          <div className="flex justify-center mb-6 opacity-95">
             <Image
-              src="/icons/HiddenGemsNepal_Affinity.svg"
-              alt=""
-              width={120}
-              height={90}
-              className="h-14 w-auto object-contain brightness-0 invert"
+              src="/icons/HiddenGemsNepal_Affinityy.svg"
+              alt="HiddenGems Nepal"
+              width={160}
+              height={120}
+              className="h-16 w-auto object-contain"
             />
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4">

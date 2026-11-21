@@ -89,7 +89,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        {/* Logo */}
+        {/* Logo with high visibility and dark mode contrast */}
         <Link href="/" className="flex items-center gap-2" aria-label="HiddenGems Nepal home">
           {/* Full logo on sm+ screens */}
           <Image
@@ -98,16 +98,32 @@ export function Navbar() {
             width={160}
             height={120}
             priority
-            className="hidden sm:block object-contain h-10 w-auto"
+            className="hidden sm:block dark:hidden object-contain h-10 w-auto"
           />
-          {/* Icon-only on mobile */}
+          <Image
+            src="/icons/HiddenGemsNepal_Affinityy.svg"
+            alt="HiddenGems Nepal"
+            width={160}
+            height={120}
+            priority
+            className="hidden sm:dark:block object-contain h-10 w-auto"
+          />
+          {/* Mobile screens */}
           <Image
             src="/icons/HiddenGemsNepal_Affinity.svg"
             alt="HGN"
-            width={36}
-            height={36}
+            width={38}
+            height={38}
             priority
-            className="sm:hidden object-contain"
+            className="sm:hidden dark:hidden object-contain"
+          />
+          <Image
+            src="/icons/HiddenGemsNepal_Affinityy.svg"
+            alt="HGN"
+            width={38}
+            height={38}
+            priority
+            className="hidden sm:hidden dark:block sm:dark:hidden object-contain"
           />
         </Link>
 
@@ -193,7 +209,14 @@ export function Navbar() {
                   alt="HiddenGems Nepal"
                   width={180}
                   height={135}
-                  className="object-contain h-12 w-auto"
+                  className="object-contain h-12 w-auto dark:hidden"
+                />
+                <Image
+                  src="/icons/HiddenGemsNepal_Affinityy.svg"
+                  alt="HiddenGems Nepal"
+                  width={180}
+                  height={135}
+                  className="hidden object-contain h-12 w-auto dark:block"
                 />
               </Link>
               <div className="h-px bg-border" />

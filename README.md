@@ -1,4 +1,4 @@
-# 🏔️ HiddenGems Nepal
+# HiddenGems Nepal
 
 > *"Discover the Nepal that everyone misses."*
 
@@ -11,13 +11,13 @@
 [![PostGIS](https://img.shields.io/badge/PostGIS-Enabled-47A248?style=for-the-badge&logo=postgresql)](https://postgis.net/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 
-[Live Demo ↗](https://hiddengems-nepal.vercel.app) • [Documentation 📚](./docs) • [Report Bug 🐛](https://github.com/safalbhujel/hidden-gems-nepal/issues) • [Request Feature ✨](https://github.com/safalbhujel/hidden-gems-nepal/issues)
+[Live Demo ↗](https://hiddengems-nepal.vercel.app) • [Documentation](./docs) • [Report Issue](https://github.com/safalbhujel/hidden-gems-nepal/issues) • [Feature Requests](https://github.com/safalbhujel/hidden-gems-nepal/issues)
 
 </div>
 
 ---
 
-## 🌟 What is HiddenGems Nepal?
+## What is HiddenGems Nepal?
 
 Tired of visiting the same overcrowded tourist spots? **HiddenGems Nepal** is a community-driven discovery platform designed to help you find the *real* Nepal — the hidden waterfalls, cozy local cafés, quiet sunset viewpoints, and authentic food spots that make travel truly memorable.
 
@@ -27,15 +27,15 @@ Whether you're looking for a peaceful nature escape, a short hiking trail, or th
 
 ---
 
-## 💡 The Problem vs. Our Solution
+## The Problem vs. Our Solution
 
-### 🚫 The Problem
+### The Problem
 Most travel apps and social media algorithms push the same 5–10 popular destinations. Meanwhile, thousands of amazing places across Nepal remain invisible:
 - Hidden gems are scattered across fragmented social media posts and word-of-mouth.
 - Popular spots suffer from overtourism while local treasures go undiscovered.
 - There is no single platform to find places based on *what you actually want to experience*.
 
-### 🚀 The Solution
+### The Solution
 HiddenGems Nepal flips the script. Instead of scrolling through generic directories, you:
 1. **Tell us your vibe** — a quiet café, a nature escape, a food adventure, or a sunset view.
 2. **We show you what's nearby** — places perfectly matched to your mood and location across all 77 districts.
@@ -43,34 +43,34 @@ HiddenGems Nepal flips the script. Instead of scrolling through generic director
 
 ---
 
-## ✨ Features That Make Discovery Easy
+## Features That Make Discovery Easy
 
-### 🎯 Smart, Intent-Based Discovery
+### Smart, Intent-Based Discovery
 - Search by experience, not just place names.
 - Filter by mood, category, and vibe using intuitive tags (e.g., `Waterfall` + `Date Spot` + `Photography`).
 - Comprehensive coverage of all 7 provinces and 77 districts of Nepal.
 
-### 🗺️ Location-Aware Exploration
+### Location-Aware Exploration
 - Explore hidden gems visually on an interactive, custom-styled Mapbox map.
 - "Find gems near me" powered by native PostGIS radius queries.
 - One-click Google Maps directions from your live location to the pinned spot.
 
-### 📸 See Before You Go
+### See Before You Go
 - Rich media support with up to 6 reorderable images per place.
 - Optional external video embeds (YouTube/TikTok) to bring places to life.
 - Authentic ratings, reviews, and practical travel tips from the community.
 
-### 💫 Signature "Hidden Score"
+### Signature "Hidden Score"
 Our unique differentiating metric estimates how under-the-radar a place is. It helps you find genuine, uncrowded spots, not tourist traps.
 
-### 🤝 Community-Powered & Trusted
+### Community-Powered & Trusted
 - **Submit a Gem:** Share your own discoveries with a structured, easy-to-use workflow.
 - **Quality Assurance:** Every submission passes through an admin moderation queue to prevent spam and ensure accuracy.
 - **Personalization:** Save your favorite spots to build a personal wishlist for future adventures.
 
 ---
 
-## 🛠️ Technology Behind the Scenes
+## Technology Behind the Scenes
 
 We built HiddenGems Nepal with a modern, scalable, and secure full-stack ecosystem:
 
@@ -86,7 +86,7 @@ We built HiddenGems Nepal with a modern, scalable, and secure full-stack ecosyst
 
 ---
 
-## 🚀 Getting Started (For Developers)
+## Getting Started (For Developers)
 
 Want to contribute to the codebase? Follow these steps to run the project locally.
 

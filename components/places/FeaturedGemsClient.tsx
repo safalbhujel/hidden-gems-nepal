@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Star, Lock, Sparkles } from 'lucide-react'
+import { MapPin, Star, Lock, Clock, Compass } from 'lucide-react'
 import type { PlaceCardData, SortOption } from '@/lib/types/places'
 
 interface FeaturedGemsClientProps {
@@ -14,9 +14,9 @@ interface FeaturedGemsClientProps {
 }
 
 const TABS: { value: SortOption; label: string; icon: React.ReactNode }[] = [
-  { value: 'newest', label: 'Just Added', icon: <Sparkles className="h-4 w-4" /> },
-  { value: 'highest_rated', label: 'Top Rated', icon: <Star className="h-4 w-4" /> },
-  { value: 'most_hidden', label: 'Most Hidden', icon: <Lock className="h-4 w-4" /> },
+  { value: 'newest', label: 'Just Added', icon: <Clock className="h-4 w-4" strokeWidth={1.75} /> },
+  { value: 'highest_rated', label: 'Top Rated', icon: <Star className="h-4 w-4" strokeWidth={1.75} /> },
+  { value: 'most_hidden', label: 'Most Hidden', icon: <Lock className="h-4 w-4" strokeWidth={1.75} /> },
 ]
 
 export function FeaturedGemsClient({
@@ -53,7 +53,7 @@ export function FeaturedGemsClient({
 
       {places.length === 0 ? (
         <div className="col-span-3 text-center py-16 text-muted-foreground">
-          <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-30" />
+          <Compass className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" strokeWidth={1.5} />
           <p className="font-medium">Hidden gems are being discovered…</p>
           <p className="text-sm mt-1">Check back soon for amazing spots!</p>
         </div>
