@@ -20,8 +20,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { logoutAdminAction } from '@/lib/admin/auth-actions';
 
 interface AdminSidebarProps {
   pendingCount?: number;
@@ -40,15 +39,11 @@ const PRIMARY_NAV = [
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
-export function AdminSidebar({ pendingCount = 2 }: AdminSidebarProps) {
+export function AdminSidebar({ pendingCount = 0 }: AdminSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
 
   async function handleLogout() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    await logoutAdminAction();
   }
 
   return (

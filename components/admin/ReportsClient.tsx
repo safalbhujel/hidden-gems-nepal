@@ -40,7 +40,15 @@ export function ReportsClient({ initialReports }: ReportsClientProps) {
       </div>
 
       <div className="space-y-3">
-        {reports.map((report) => (
+        {reports.length === 0 ? (
+          <div className="rounded-2xl border border-border/80 bg-card p-12 text-center text-xs text-muted-foreground">
+            <p className="font-semibold text-foreground text-sm">No community reports filed</p>
+            <p className="mt-1 text-xs">
+              When users flag outdated coordinates, duplicates, or route issues, they will queue here.
+            </p>
+          </div>
+        ) : (
+          reports.map((report) => (
           <div
             key={report.id}
             className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs"
@@ -88,8 +96,9 @@ export function ReportsClient({ initialReports }: ReportsClientProps) {
               )}
             </div>
           </div>
-        ))}
-      </div>
+        ))
+      )}
+    </div>
     </div>
   );
 }

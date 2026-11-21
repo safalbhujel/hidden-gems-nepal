@@ -80,7 +80,15 @@ export function FeaturedGemsClient({ initialGems }: FeaturedGemsClientProps) {
           </div>
 
           <div className="space-y-2">
-            {featuredGems.map((gem, idx) => (
+            {featuredGems.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground border border-dashed border-border/80 rounded-xl p-6">
+                <p className="font-semibold text-foreground">No featured gems selected</p>
+                <p className="mt-1 text-[11px]">
+                  Select approved gems from the right panel to feature them on the homepage.
+                </p>
+              </div>
+            ) : (
+              featuredGems.map((gem, idx) => (
               <div
                 key={gem.id}
                 className="flex items-center justify-between p-3 rounded-xl border border-border/70 bg-background/90 text-xs shadow-2xs"
@@ -130,9 +138,10 @@ export function FeaturedGemsClient({ initialGems }: FeaturedGemsClientProps) {
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
         </div>
+      </div>
 
         {/* Right Column: Approved Pool to Add */}
         <div className="lg:col-span-5 rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-2xs">

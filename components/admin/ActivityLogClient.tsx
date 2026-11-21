@@ -13,49 +13,7 @@ interface ActivityLogClientProps {
 }
 
 export function ActivityLogClient({ initialActivity }: ActivityLogClientProps) {
-  const [activities] = useState<AdminActivityItem[]>([
-    ...initialActivity,
-    {
-      id: 'act-101',
-      timestamp: 'Today, 2:34 PM',
-      admin_name: 'Safal Bhujel',
-      action: 'Approved gem',
-      target: "'Namje Village' in Dhankuta",
-      details: 'Vetted coordinates and community photo rights',
-    },
-    {
-      id: 'act-102',
-      timestamp: 'Today, 1:15 PM',
-      admin_name: 'Super Admin',
-      action: 'Rejected gem',
-      target: "'Ghyampe Danda' (Duplicate)",
-      details: 'Identical coordinates to Pilot Baba Ashram view',
-    },
-    {
-      id: 'act-103',
-      timestamp: 'Yesterday, 6:40 PM',
-      admin_name: 'System Engine',
-      action: 'Created gem',
-      target: 'User submission intake from @karmasherpa',
-      details: 'PostGIS point created at POINT(86.478 27.868)',
-    },
-    {
-      id: 'act-104',
-      timestamp: 'Nov 19, 2026',
-      admin_name: 'Safal Bhujel',
-      action: 'Featured gem',
-      target: 'Panch Pokhari High Tarns spotlighted',
-      details: 'Homepage carousel priority slot 2',
-    },
-    {
-      id: 'act-105',
-      timestamp: 'Nov 18, 2026',
-      admin_name: 'Super Admin',
-      action: 'Updated category',
-      target: 'Nature Escapes taxonomy updated',
-      details: 'Added waterfall and lake classification tags',
-    },
-  ]);
+  const [activities] = useState<AdminActivityItem[]>(initialActivity);
 
   function handleExportCSV() {
     const rows = [
@@ -119,27 +77,38 @@ export function ActivityLogClient({ initialActivity }: ActivityLogClientProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
-            {activities.map((act) => (
-              <tr key={act.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">
-                  {act.timestamp}
-                </td>
-                <td className="px-4 py-3 font-bold text-foreground">
-                  {act.admin_name}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="rounded-md bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-bold uppercase">
-                    {act.action}
-                  </span>
-                </td>
-                <td className="px-4 py-3 font-semibold text-foreground/90">
-                  {act.target}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {act.details || '—'}
+            {activities.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-12 text-center text-xs text-muted-foreground">
+                  <p className="font-semibold text-foreground">No audit activity logged yet</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    System operations and moderation decisions will record here in real-time.
+                  </p>
                 </td>
               </tr>
-            ))}
+            ) : (
+              activities.map((act) => (
+                <tr key={act.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">
+                    {act.timestamp}
+                  </td>
+                  <td className="px-4 py-3 font-bold text-foreground">
+                    {act.admin_name}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-md bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-bold uppercase">
+                      {act.action}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-semibold text-foreground/90">
+                    {act.target}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {act.details || '—'}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -1,24 +1,16 @@
 // app/admin/layout.tsx
 
 import type { Metadata } from 'next';
-import { AdminLayoutClient } from '@/components/admin/AdminLayoutClient';
-import { getPendingGems } from '@/lib/admin/queries';
 
 export const metadata: Metadata = {
   title: 'Admin Console | HiddenGems Nepal',
-  description: 'Advanced administration, content moderation, and geospatial management.',
+  description: 'Administrative terminal and geospatial moderation.',
 };
 
-export default async function AdminLayout({
+export default function AdminRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pendingGems = await getPendingGems();
-
-  return (
-    <AdminLayoutClient pendingCount={pendingGems.length}>
-      {children}
-    </AdminLayoutClient>
-  );
+  return <div className="min-h-screen bg-[#FAF8F5] text-[#1A1A1A] antialiased">{children}</div>;
 }

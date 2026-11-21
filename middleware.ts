@@ -1,7 +1,37 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from '@/lib/admin/auth-edge'
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // ── 1. Admin Console Route Protection ────────────────────────────────────
+  if (pathname.startsWith('/admin')) {
+    const adminCookie = request.cookies.get(ADMIN_COOKIE_NAME)?.value
+    const { valid } = await verifyAdminSessionToken(adminCookie)
+
+    // Dedicated admin login page
+    if (pathname === '/admin/login') {
+      if (valid) {
+        // Already authenticated as admin -> go to dashboard
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      }
+      return NextResponse.next({ request })
+    }
+
+    // All other /admin routes require valid admin session
+    if (!valid) {
+      const loginUrl = new URL('/admin/login', request.url)
+      if (pathname !== '/admin') {
+        loginUrl.searchParams.set('redirectedFrom', pathname)
+      }
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return NextResponse.next({ request })
+  }
+
+  // ── 2. Consumer Supabase Client & Route Protection ───────────────────────
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(

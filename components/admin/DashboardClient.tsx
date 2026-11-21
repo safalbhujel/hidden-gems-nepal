@@ -303,27 +303,31 @@ export function DashboardClient({ stats }: DashboardClientProps) {
           </div>
 
           <div className="space-y-3.5 pt-1">
-            {[
-              { district: 'Kaski (Pokhara Valley)', count: 18, pct: 85 },
-              { district: 'Dolakha (Rolwaling)', count: 12, pct: 60 },
-              { district: 'Mustang (Trans-Himalaya)', count: 11, pct: 55 },
-              { district: 'Solukhumbu (Everest Ridge)', count: 9, pct: 45 },
-              { district: 'Sindhupalchok (Panch Pokhari)', count: 8, pct: 40 },
-              { district: 'Ilam (Eastern Tea Gardens)', count: 7, pct: 35 },
-            ].map((d) => (
-              <div key={d.district} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-foreground/90">{d.district}</span>
-                  <span className="text-muted-foreground font-mono">{d.count} gems</span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    style={{ width: `${d.pct}%` }}
-                    className="h-full rounded-full bg-primary/80 transition-all duration-500"
-                  />
-                </div>
+            {stats.totalGems === 0 ? (
+              <div className="rounded-xl border border-dashed border-border/80 p-6 text-center text-xs text-muted-foreground">
+                <p className="font-semibold text-foreground">Zero Regional Distribution</p>
+                <p className="mt-1 text-[11px]">
+                  As gems are approved across Nepal&apos;s 77 districts, provincial density will calculate here.
+                </p>
               </div>
-            ))}
+            ) : (
+              [
+                { district: 'Kaski (Pokhara Valley)', count: stats.approvedGems, pct: 100 },
+              ].map((d) => (
+                <div key={d.district} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground/90">{d.district}</span>
+                    <span className="text-muted-foreground font-mono">{d.count} gems</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      style={{ width: `${d.pct}%` }}
+                      className="h-full rounded-full bg-primary/80 transition-all duration-500"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="pt-2">
@@ -362,81 +366,90 @@ export function DashboardClient({ stats }: DashboardClientProps) {
           </div>
 
           <div className="divide-y divide-border/60 overflow-hidden">
-            {stats.recentSubmissions.slice(0, 5).map((place) => (
-              <div
-                key={place.id}
-                className="group flex items-center justify-between py-3 gap-3 transition-colors hover:bg-muted/30 px-2 rounded-xl"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-muted border border-border/60">
-                    {place.cover_image_url ? (
-                      <Image
-                        src={place.cover_image_url}
-                        alt={place.name}
-                        fill
-                        className="object-cover"
-                        sizes="44px"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-primary">
-                        <MapPin className="h-4 w-4" />
-                      </div>
-                    )}
+            {stats.recentSubmissions.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                <p className="font-semibold text-foreground">No recent submissions</p>
+                <p className="mt-1 text-[11px]">
+                  When explorers submit new places, they will appear here for verification.
+                </p>
+              </div>
+            ) : (
+              stats.recentSubmissions.slice(0, 5).map((place) => (
+                <div
+                  key={place.id}
+                  className="group flex items-center justify-between py-3 gap-3 transition-colors hover:bg-muted/30 px-2 rounded-xl"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-muted border border-border/60">
+                      {place.cover_image_url ? (
+                        <Image
+                          src={place.cover_image_url}
+                          alt={place.name}
+                          fill
+                          className="object-cover"
+                          sizes="44px"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-primary">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="truncate">
+                      <p className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                        {place.name}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        <span>{place.district?.name || 'Nepal'}</span>
+                        <span>·</span>
+                        <span>@{place.submitter?.username || 'explorer'}</span>
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="truncate">
-                    <p className="truncate text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                      {place.name}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                      <span>{place.district?.name || 'Nepal'}</span>
-                      <span>·</span>
-                      <span>@{place.submitter?.username || 'explorer'}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      place.status === 'APPROVED'
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                        : place.status === 'PENDING'
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                        : 'bg-red-500/10 text-red-600 dark:text-red-400'
-                    }`}
-                  >
-                    {place.status}
-                  </span>
-
-                  {/* Actions on hover */}
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSelectedPlace(place)}
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      title="Inspect details"
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        place.status === 'APPROVED'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : place.status === 'PENDING'
+                          ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                          : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                      }`}
                     >
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
+                      {place.status}
+                    </span>
 
-                    {place.status === 'PENDING' && (
+                    {/* Actions on hover */}
+                    <div className="flex items-center gap-1">
                       <Button
                         type="button"
+                        variant="ghost"
                         size="icon"
-                        onClick={() => handleQuickApprove(place.id)}
-                        className="h-8 w-8 bg-[#2D8659] hover:bg-[#236b46] text-white"
-                        title="Approve immediately"
+                        onClick={() => setSelectedPlace(place)}
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        title="Inspect details"
                       >
-                        <Check className="h-3.5 w-3.5" />
+                        <Eye className="h-3.5 w-3.5" />
                       </Button>
-                    )}
+
+                      {place.status === 'PENDING' && (
+                        <Button
+                          type="button"
+                          size="icon"
+                          onClick={() => handleQuickApprove(place.id)}
+                          className="h-8 w-8 bg-[#2D8659] hover:bg-[#236b46] text-white"
+                          title="Approve immediately"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -461,23 +474,32 @@ export function DashboardClient({ stats }: DashboardClientProps) {
           </div>
 
           <div className="space-y-3 pt-1">
-            {stats.recentActivity.map((act) => (
-              <div
-                key={act.id}
-                className="flex items-start gap-3 rounded-xl border border-border/50 bg-background/60 p-3 text-xs"
-              >
-                <div className="mt-0.5 rounded-md bg-primary/10 p-1 text-primary">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="font-bold text-foreground">{act.action}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">{act.timestamp}</span>
-                  </div>
-                  <p className="text-muted-foreground mt-0.5 truncate">{act.target}</p>
-                </div>
+            {stats.recentActivity.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground">
+                <p className="font-semibold text-foreground">Audit stream clean</p>
+                <p className="mt-1 text-[11px]">
+                  Moderator decisions and platform events will log here automatically.
+                </p>
               </div>
-            ))}
+            ) : (
+              stats.recentActivity.map((act) => (
+                <div
+                  key={act.id}
+                  className="flex items-start gap-3 rounded-xl border border-border/50 bg-background/60 p-3 text-xs"
+                >
+                  <div className="mt-0.5 rounded-md bg-primary/10 p-1 text-primary">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-bold text-foreground">{act.action}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">{act.timestamp}</span>
+                    </div>
+                    <p className="text-muted-foreground mt-0.5 truncate">{act.target}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="rounded-xl border border-border/80 bg-muted/20 p-3 text-xs text-muted-foreground flex items-center justify-between">

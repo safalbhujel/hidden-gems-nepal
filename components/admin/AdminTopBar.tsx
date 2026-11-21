@@ -13,24 +13,19 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { logoutAdminAction } from '@/lib/admin/auth-actions';
 
 interface AdminTopBarProps {
   onOpenCommandPalette: () => void;
   pendingCount?: number;
 }
 
-export function AdminTopBar({ onOpenCommandPalette, pendingCount = 2 }: AdminTopBarProps) {
-  const router = useRouter();
+export function AdminTopBar({ onOpenCommandPalette, pendingCount = 0 }: AdminTopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(false);
 
   async function handleSignOut() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    await logoutAdminAction();
   }
 
   return (

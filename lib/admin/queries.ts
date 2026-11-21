@@ -79,231 +79,51 @@ interface DBProvince {
   slug: string;
 }
 
-// Curated reference gems for realistic telemetry and zero-data demonstration
-const MOCK_GEMS: AdminPlace[] = [
-  {
-    id: 'mock-gem-1',
-    name: 'Tsho Rolpa Glacial Sanctuary',
-    slug: 'tsho-rolpa-glacial-sanctuary',
-    description:
-      'One of the largest turquoise glacial lakes in Nepal situated at 4,580m in Rolwaling Valley, offering untouched alpine serenity and raw Himalayan vistas away from commercial teahouse crowds.',
-    why_special:
-      'Pristine glacial moraine untouched by major commercial tour operators with exceptional Himalayan reflections.',
-    category_id: 'cat-nature',
-    district_id: 'dist-dolakha',
-    submitted_by: 'user-himalayan-scout',
-    latitude: 27.868,
-    longitude: 86.478,
-    map_url: 'Rolwaling Valley, Dolakha',
-    video_url: null,
-    budget: 'NPR 15,000 - 25,000',
-    best_time: 'October - November',
-    best_season: 'Autumn / Spring',
-    difficulty: 'Challenging',
-    travel_tips: 'Carry high-altitude gear and acclimatize properly at Beding village.',
-    status: 'PENDING',
-    hidden_score: 94,
-    average_rating: 4.9,
-    review_count: 14,
-    is_featured: true,
-    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    cover_image_url: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop',
-    images: [
-      'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-    ],
-    category: { id: 'cat-nature', name: 'Nature Escapes', slug: 'nature-escapes', icon: null },
-    district: { id: 'dist-dolakha', name: 'Dolakha', slug: 'dolakha', province_name: 'Bagmati' },
-    submitter: { id: 'user-1', username: 'karmasherpa', full_name: 'Karma Sherpa', avatar_url: null, email: 'karma@trail.np' },
-  },
-  {
-    id: 'mock-gem-2',
-    name: 'Badimalika Sacred Alpine Meadows',
-    slug: 'badimalika-sacred-alpine-meadows',
-    description:
-      'Rolling emerald plateau perched at 4,200m in Far-Western Nepal with panoramic views of Api and Saipal peaks.',
-    why_special: 'Undiscovered high-altitude grasslands with ancient temple heritage and zero tourist lodges.',
-    category_id: 'cat-view',
-    district_id: 'dist-bajura',
-    submitted_by: 'user-trailblazer',
-    latitude: 29.612,
-    longitude: 81.385,
-    map_url: 'Bajura District, Far-West Nepal',
-    video_url: null,
-    budget: 'NPR 12,000 - 18,000',
-    best_time: 'July - September',
-    best_season: 'Monsoon / Autumn',
-    difficulty: 'Moderate',
-    travel_tips: 'Self-sufficient camping required; carry reliable waterproof tents.',
-    status: 'PENDING',
-    hidden_score: 96,
-    average_rating: 5.0,
-    review_count: 8,
-    is_featured: false,
-    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    cover_image_url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop',
-    images: ['https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop'],
-    category: { id: 'cat-view', name: 'Views & Sunsets', slug: 'views-sunsets', icon: null },
-    district: { id: 'dist-bajura', name: 'Bajura', slug: 'bajura', province_name: 'Sudurpashchim' },
-    submitter: { id: 'user-2', username: 'aarav_wander', full_name: 'Aarav Thapa', avatar_url: null, email: 'aarav@wild.np' },
-  },
-  {
-    id: 'mock-gem-3',
-    name: 'Namje Village & Cloud Horizon',
-    slug: 'namje-village-cloud-horizon',
-    description:
-      'Idyllic Magar village perched on the Mahabharat ridge overlooking the Kanchenjunga massif, celebrated by CNN as an uncharted paradise.',
-    why_special: 'Authentic stone architecture, warm homestays, and sunrise cloud inversions.',
-    category_id: 'cat-culture',
-    district_id: 'dist-dhankuta',
-    submitted_by: 'user-eastern-scout',
-    latitude: 26.964,
-    longitude: 87.318,
-    map_url: 'Dhankuta, Koshi Province',
-    video_url: null,
-    budget: 'NPR 4,000 - 8,000',
-    best_time: 'Year-round',
-    best_season: 'Autumn / Winter',
-    difficulty: 'Easy',
-    travel_tips: 'Accessible by jeep from Dharan; enjoy local tongba and organic orange orchards.',
-    status: 'APPROVED',
-    hidden_score: 88,
-    average_rating: 4.8,
-    review_count: 26,
-    is_featured: true,
-    created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-    cover_image_url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop',
-    images: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800&auto=format&fit=crop'],
-    category: { id: 'cat-culture', name: 'Culture & Local Life', slug: 'culture-local-life', icon: null },
-    district: { id: 'dist-dhankuta', name: 'Dhankuta', slug: 'dhankuta', province_name: 'Koshi' },
-    submitter: { id: 'user-3', username: 'safalbhujel', full_name: 'Safal Bhujel', avatar_url: null, email: 'safal@hgn.np' },
-  },
-  {
-    id: 'mock-gem-4',
-    name: 'Panch Pokhari High Tarns',
-    slug: 'panch-pokhari-high-tarns',
-    description:
-      'A cluster of 5 sacred alpine lakes at 4,100m beneath the Dorje Lakpa range with vibrant autumn reflections.',
-    why_special: 'Sacred pilgrimage site completely free of motorable roads or luxury resorts.',
-    category_id: 'cat-nature',
-    district_id: 'dist-sindhupalchok',
-    submitted_by: 'user-trail-scout',
-    latitude: 28.042,
-    longitude: 85.738,
-    map_url: 'Sindhupalchok, Bagmati',
-    video_url: null,
-    budget: 'NPR 10,000 - 16,000',
-    best_time: 'September - November',
-    best_season: 'Autumn',
-    difficulty: 'Moderate',
-    travel_tips: 'Trail starts from Chimti; local teahouses are basic so bring a warm sleeping bag.',
-    status: 'APPROVED',
-    hidden_score: 91,
-    average_rating: 4.7,
-    review_count: 19,
-    is_featured: true,
-    created_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 50).toISOString(),
-    cover_image_url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop',
-    images: ['https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop'],
-    category: { id: 'cat-nature', name: 'Nature Escapes', slug: 'nature-escapes', icon: null },
-    district: { id: 'dist-sindhupalchok', name: 'Sindhupalchok', slug: 'sindhupalchok', province_name: 'Bagmati' },
-    submitter: { id: 'user-4', username: 'prakriti_r', full_name: 'Prakriti Rayamajhi', avatar_url: null, email: 'prakriti@trail.np' },
-  },
-  {
-    id: 'mock-gem-5',
-    name: 'Ghyampe Danda Secret Ridge Viewpoint',
-    slug: 'ghyampe-danda-secret-ridge',
-    description:
-      'Hidden viewpoint overlooking the entire Kathmandu valley and Langtang range, tucked behind Pilot Baba Ashram.',
-    why_special: 'Only 30 minutes from Bhaktapur yet completely quiet at sunrise.',
-    category_id: 'cat-date',
-    district_id: 'dist-bhaktapur',
-    submitted_by: 'user-ktm-local',
-    latitude: 27.643,
-    longitude: 85.431,
-    map_url: 'Suryabinayak, Bhaktapur',
-    video_url: null,
-    budget: 'NPR 500 - 1,500',
-    best_time: 'Dawn / Sunset',
-    best_season: 'Autumn / Winter',
-    difficulty: 'Easy',
-    travel_tips: 'Ride up early in the morning before the fog clears.',
-    status: 'REJECTED',
-    rejection_reason: 'Duplicate submission: Already documented as Pilot Baba Ridge.',
-    hidden_score: 74,
-    average_rating: 3.9,
-    review_count: 5,
-    is_featured: false,
-    created_at: new Date(Date.now() - 3600000 * 96).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 80).toISOString(),
-    cover_image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop',
-    images: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop'],
-    category: { id: 'cat-date', name: 'Date Spots', slug: 'date-spots', icon: null },
-    district: { id: 'dist-bhaktapur', name: 'Bhaktapur', slug: 'bhaktapur', province_name: 'Bagmati' },
-    submitter: { id: 'user-5', username: 'roshan_k', full_name: 'Roshan Khatri', avatar_url: null, email: 'roshan@mail.np' },
-  },
-];
-
+/**
+ * Fetch real administrative KPI summary statistics from Supabase
+ */
 export async function getAdminStats(): Promise<AdminStats> {
   const supabase = createSupabaseAdminClient();
 
   try {
     const [placesRes, profilesRes, reviewsRes, savedRes] = await Promise.all([
-      supabase.from('places').select('id, status'),
-      supabase.from('profiles').select('id'),
-      supabase.from('reviews').select('id'),
-      supabase.from('saved_places').select('user_id'),
+      supabase.from('places').select('id, status, is_featured, created_at, name, district_id'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('reviews').select('id', { count: 'exact', head: true }),
+      supabase.from('saved_places').select('user_id', { count: 'exact', head: true }),
     ]);
 
-    const dbPlaces = placesRes.data || [];
-    const totalUsers = Math.max(profilesRes.data?.length || 0, 48);
-    const totalReviews = Math.max(reviewsRes.data?.length || 0, 86);
-    const savedPlaces = Math.max(savedRes.data?.length || 0, 142);
+    const places = placesRes.data || [];
+    const totalGems = places.length;
+    const pendingGems = places.filter((p) => p.status === 'PENDING').length;
+    const approvedGems = places.filter((p) => p.status === 'APPROVED').length;
+    const rejectedGems = places.filter((p) => p.status === 'REJECTED').length;
+    const featuredGems = places.filter((p) => Boolean(p.is_featured)).length;
 
-    // If database has places, compute directly; otherwise merge mock baseline
-    const combinedPlaces = dbPlaces.length > 0 ? dbPlaces : MOCK_GEMS;
-
-    const totalGems = combinedPlaces.length;
-    const pendingGems = combinedPlaces.filter((p) => p.status === 'PENDING').length;
-    const approvedGems = combinedPlaces.filter((p) => p.status === 'APPROVED').length;
-    const rejectedGems = combinedPlaces.filter((p) => p.status === 'REJECTED').length;
-    const featuredGems = 4;
+    const totalUsers = profilesRes.count ?? 0;
+    const totalReviews = reviewsRes.count ?? 0;
+    const savedPlaces = savedRes.count ?? 0;
 
     const recentSubmissions = await getAdminGems({ limit: 6 });
-    const recentActivity: AdminActivityItem[] = [
-      {
-        id: 'act-1',
-        timestamp: '14 minutes ago',
-        admin_name: 'Super Admin',
-        action: 'Approved gem',
-        target: 'Namje Village & Cloud Horizon in Dhankuta',
-      },
-      {
-        id: 'act-2',
-        timestamp: '2 hours ago',
-        admin_name: 'Safal Bhujel',
-        action: 'Rejected gem',
-        target: 'Ghyampe Danda Ridge (Duplicate)',
-      },
-      {
-        id: 'act-3',
-        timestamp: '6 hours ago',
-        admin_name: 'Super Admin',
-        action: 'Featured gem',
-        target: 'Panch Pokhari High Tarns spotlighted',
-      },
-      {
-        id: 'act-4',
-        timestamp: 'Yesterday',
-        admin_name: 'System',
-        action: 'Created gem',
-        target: 'New submission from @karmasherpa in Dolakha',
-      },
-    ];
+
+    // Construct genuine activity stream from places mutations
+    const recentActivity: AdminActivityItem[] = places.slice(0, 5).map((p, idx) => ({
+      id: `activity-${p.id || idx}`,
+      timestamp: new Date(p.created_at || Date.now()).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      admin_name: p.status === 'APPROVED' ? 'Admin' : 'Explorer',
+      action:
+        p.status === 'APPROVED'
+          ? 'Approved gem'
+          : p.status === 'REJECTED'
+          ? 'Rejected gem'
+          : 'Created gem',
+      target: p.name,
+    }));
 
     return {
       totalUsers,
@@ -318,28 +138,32 @@ export async function getAdminStats(): Promise<AdminStats> {
       recentActivity,
     };
   } catch (err) {
-    console.error('[getAdminStats] Error querying stats:', err);
+    console.error('[getAdminStats] Error querying genuine stats:', err);
     return {
-      totalUsers: 48,
-      totalGems: MOCK_GEMS.length,
-      pendingGems: MOCK_GEMS.filter((p) => p.status === 'PENDING').length,
-      approvedGems: MOCK_GEMS.filter((p) => p.status === 'APPROVED').length,
-      rejectedGems: MOCK_GEMS.filter((p) => p.status === 'REJECTED').length,
-      totalReviews: 86,
-      savedPlaces: 142,
-      featuredGems: 4,
-      recentSubmissions: MOCK_GEMS,
+      totalUsers: 0,
+      totalGems: 0,
+      pendingGems: 0,
+      approvedGems: 0,
+      rejectedGems: 0,
+      totalReviews: 0,
+      savedPlaces: 0,
+      featuredGems: 0,
+      recentSubmissions: [],
       recentActivity: [],
     };
   }
 }
 
+/**
+ * Fetch real places from Supabase with relational fields
+ */
 export async function getAdminGems(options: {
-  status?: GemStatus | 'ALL';
-  search?: string;
-  categorySlug?: string;
-  districtSlug?: string;
+  status?: GemStatus;
   limit?: number;
+  offset?: number;
+  search?: string;
+  categoryId?: string;
+  districtId?: string;
 } = {}): Promise<AdminPlace[]> {
   const supabase = createSupabaseAdminClient();
 
@@ -348,39 +172,38 @@ export async function getAdminGems(options: {
       .from('places')
       .select(`
         *,
+        place_images ( id, image_url, sort_order ),
         categories ( id, name, slug, icon ),
         districts ( id, name, slug, provinces ( name ) ),
-        profiles ( id, username, full_name, avatar_url ),
-        place_images ( image_url, sort_order )
+        profiles:submitted_by ( id, username, full_name, avatar_url )
       `)
       .order('created_at', { ascending: false });
 
-    if (options.status && options.status !== 'ALL') {
+    if (options.status) {
       query = query.eq('status', options.status);
     }
-
+    if (options.categoryId) {
+      query = query.eq('category_id', options.categoryId);
+    }
+    if (options.districtId) {
+      query = query.eq('district_id', options.districtId);
+    }
     if (options.limit) {
       query = query.limit(options.limit);
+    }
+    if (options.offset) {
+      query = query.range(options.offset, options.offset + (options.limit || 20) - 1);
     }
 
     const { data, error } = await query;
 
-    if (error || !data || data.length === 0) {
-      // Return filtered mock gems when DB is empty
-      let results = [...MOCK_GEMS];
-      if (options.status && options.status !== 'ALL') {
-        results = results.filter((p) => p.status === options.status);
-      }
-      if (options.search) {
-        const q = options.search.toLowerCase();
-        results = results.filter(
-          (p) =>
-            p.name.toLowerCase().includes(q) ||
-            p.district?.name.toLowerCase().includes(q) ||
-            p.submitter?.username?.toLowerCase().includes(q)
-        );
-      }
-      return options.limit ? results.slice(0, options.limit) : results;
+    if (error) {
+      console.warn('[getAdminGems] Supabase query notice:', error.message);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
     }
 
     return (data as unknown as DBPlaceRow[]).map((row) => {
@@ -418,7 +241,9 @@ export async function getAdminGems(options: {
         updated_at: row.updated_at,
         cover_image_url: sortedImages[0]?.image_url || null,
         images: sortedImages.map((img: DBPlaceImage) => img.image_url),
-        category: category ? { id: category.id, name: category.name, slug: category.slug, icon: category.icon ?? null } : null,
+        category: category
+          ? { id: category.id, name: category.name, slug: category.slug, icon: category.icon ?? null }
+          : null,
         district: district
           ? {
               id: district.id,
@@ -439,53 +264,61 @@ export async function getAdminGems(options: {
     });
   } catch (err) {
     console.error('[getAdminGems] Query error:', err);
-    return MOCK_GEMS;
+    return [];
   }
 }
 
+/**
+ * Fetch real pending submissions for the moderation queue
+ */
 export async function getPendingGems(): Promise<AdminPlace[]> {
   return getAdminGems({ status: 'PENDING' });
 }
 
+/**
+ * Fetch real categories from Supabase
+ */
 export async function getAdminCategories(): Promise<AdminCategory[]> {
   const supabase = createSupabaseAdminClient();
   try {
-    const { data: categories } = await supabase.from('categories').select('*').order('name');
-    if (!categories || categories.length === 0) {
-      return [
-        { id: '1', name: 'Nature Escapes', slug: 'nature-escapes', description: 'Waterfalls, lakes, forests, and pristine wilderness', icon: null, is_active: true, place_count: 18 },
-        { id: '2', name: 'Views & Sunsets', slug: 'views-sunsets', description: 'Scenic high-altitude ridges and horizon lookouts', icon: null, is_active: true, place_count: 14 },
-        { id: '3', name: 'Culture & Local Life', slug: 'culture-local-life', description: 'Heritage sanctuaries, stone villages, ancient teahouses', icon: null, is_active: true, place_count: 12 },
-        { id: '4', name: 'Date Spots', slug: 'date-spots', description: 'Quiet viewpoints and cozy hillside settings', icon: null, is_active: true, place_count: 9 },
-        { id: '5', name: 'Adventure & Hikes', slug: 'adventure-hikes', description: 'Secret trailheads, cave systems, and ridge climbs', icon: null, is_active: true, place_count: 16 },
-        { id: '6', name: 'Food Gems', slug: 'food-gems', description: 'Authentic local eateries and traditional delicacies', icon: null, is_active: true, place_count: 8 },
-      ];
-    }
+    const [catRes, placesRes] = await Promise.all([
+      supabase.from('categories').select('*').order('name'),
+      supabase.from('places').select('category_id'),
+    ]);
 
-    return (categories as DBCategory[]).map((cat) => ({
+    const categories = (catRes.data || []) as DBCategory[];
+    const places = placesRes.data || [];
+
+    return categories.map((cat) => ({
       id: cat.id,
       name: cat.name,
       slug: cat.slug,
       description: cat.description ?? null,
       icon: cat.icon ?? null,
       is_active: cat.is_active ?? true,
-      place_count: Math.floor(Math.random() * 10) + 4,
+      place_count: places.filter((p) => p.category_id === cat.id).length,
     }));
-  } catch {
+  } catch (err) {
+    console.error('[getAdminCategories] Error:', err);
     return [];
   }
 }
 
+/**
+ * Fetch real provinces and districts from Supabase with actual place counts
+ */
 export async function getAdminDistricts(): Promise<AdminProvinceGroup[]> {
   const supabase = createSupabaseAdminClient();
   try {
-    const [provRes, distRes] = await Promise.all([
+    const [provRes, distRes, placesRes] = await Promise.all([
       supabase.from('provinces').select('*').order('name'),
       supabase.from('districts').select('id, name, slug, province_id').order('name'),
+      supabase.from('places').select('district_id'),
     ]);
 
     const provinces = (provRes.data || []) as DBProvince[];
     const districts = (distRes.data || []) as DBDistrict[];
+    const places = placesRes.data || [];
 
     return provinces.map((p) => {
       const provDistricts = districts
@@ -495,7 +328,7 @@ export async function getAdminDistricts(): Promise<AdminProvinceGroup[]> {
           name: d.name,
           slug: d.slug,
           is_enabled: true,
-          place_count: Math.floor(Math.random() * 8),
+          place_count: places.filter((place) => place.district_id === d.id).length,
         }));
 
       return {
@@ -512,70 +345,123 @@ export async function getAdminDistricts(): Promise<AdminProvinceGroup[]> {
   }
 }
 
+/**
+ * Fetch real user reviews from Supabase reviews table
+ */
 export async function getAdminReviews(): Promise<AdminReview[]> {
-  return [
-    {
-      id: 'rev-1',
-      place_id: 'mock-gem-1',
-      user_id: 'user-1',
-      rating: 5,
-      comment: 'An unreal trek. Zero tourists in October. The water in the glacial tarn was crystal clear.',
-      created_at: 'Nov 20, 2026',
-      place_name: 'Tsho Rolpa Glacial Sanctuary',
-      place_slug: 'tsho-rolpa-glacial-sanctuary',
-      user_name: 'Karma Sherpa',
-      user_avatar: null,
-    },
-    {
-      id: 'rev-2',
-      place_id: 'mock-gem-3',
-      user_id: 'user-2',
-      rating: 5,
-      comment: 'The cloud inversion in Namje in the morning was magical. Warmest homestay family ever.',
-      created_at: 'Nov 19, 2026',
-      place_name: 'Namje Village & Cloud Horizon',
-      place_slug: 'namje-village-cloud-horizon',
-      user_name: 'Aarav Thapa',
-      user_avatar: null,
-    },
-    {
-      id: 'rev-3',
-      place_id: 'mock-gem-4',
-      user_id: 'user-3',
-      rating: 4,
-      comment: 'Tough climb but the five sacred lakes are worth every drop of sweat. Bring warm gear.',
-      created_at: 'Nov 18, 2026',
-      place_name: 'Panch Pokhari High Tarns',
-      place_slug: 'panch-pokhari-high-tarns',
-      user_name: 'Prakriti Rayamajhi',
-      user_avatar: null,
-    },
-  ];
+  const supabase = createSupabaseAdminClient();
+  try {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select(`
+        id,
+        place_id,
+        user_id,
+        rating,
+        comment,
+        created_at,
+        places:place_id ( name, slug ),
+        profiles:user_id ( username, full_name, avatar_url )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error || !data) {
+      return [];
+    }
+
+    interface ReviewRow {
+      id: string;
+      place_id: string;
+      user_id: string;
+      rating: number;
+      comment: string;
+      created_at: string;
+      places?: { name: string; slug: string } | Array<{ name: string; slug: string }>;
+      profiles?: { username?: string; full_name?: string; avatar_url?: string } | Array<{ username?: string; full_name?: string; avatar_url?: string }>;
+    }
+
+    return (data as unknown as ReviewRow[]).map((r) => {
+      const place = Array.isArray(r.places) ? r.places[0] : r.places;
+      const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+
+      return {
+        id: r.id,
+        place_id: r.place_id,
+        user_id: r.user_id,
+        rating: r.rating,
+        comment: r.comment,
+        created_at: new Date(r.created_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        place_name: place?.name || 'Unknown Gem',
+        place_slug: place?.slug || '',
+        user_name: profile?.full_name || profile?.username || 'Explorer',
+        user_avatar: profile?.avatar_url || null,
+      };
+    });
+  } catch {
+    return [];
+  }
 }
 
+/**
+ * Fetch real reports from Supabase reports table
+ */
 export async function getAdminReports(): Promise<AdminReport[]> {
-  return [
-    {
-      id: 'rep-1',
-      place_id: 'mock-gem-5',
-      place_name: 'Ghyampe Danda Secret Ridge Viewpoint',
-      place_slug: 'ghyampe-danda-secret-ridge',
-      reported_by: '@trailguide_nepal',
-      reason: 'Duplicate',
-      details: 'This spot is already registered under Pilot Baba Ridge viewpoint with identical coordinates.',
-      status: 'OPEN',
-      created_at: 'Nov 21, 2026, 11:30 AM',
-    },
-    {
-      id: 'rep-2',
-      place_id: 'mock-gem-2',
-      place_name: 'Badimalika Sacred Alpine Meadows',
-      place_slug: 'badimalika-sacred-alpine-meadows',
-      reported_by: '@aarav_wander',
-      reason: 'Inaccurate Coordinates',
-      details: 'The pin is roughly 800m south of the actual pilgrimage ridge crest.',
-      status: 'INVESTIGATING',
-      created_at: 'Nov 20, 2026, 4:15 PM',
-    },
-  ];
+  const supabase = createSupabaseAdminClient();
+  try {
+    const { data, error } = await supabase
+      .from('reports')
+      .select(`
+        id,
+        place_id,
+        reason,
+        details,
+        status,
+        created_at,
+        places:place_id ( name, slug ),
+        profiles:reported_by ( username )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error || !data) {
+      return [];
+    }
+
+    interface ReportRow {
+      id: string;
+      place_id: string;
+      reason: string;
+      details?: string;
+      status: string;
+      created_at: string;
+      places?: { name: string; slug: string } | Array<{ name: string; slug: string }>;
+      profiles?: { username?: string } | Array<{ username?: string }>;
+    }
+
+    return (data as unknown as ReportRow[]).map((r) => {
+      const place = Array.isArray(r.places) ? r.places[0] : r.places;
+      const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+
+      return {
+        id: r.id,
+        place_id: r.place_id,
+        place_name: place?.name || 'Unknown Gem',
+        place_slug: place?.slug || '',
+        reported_by: profile?.username ? `@${profile.username}` : 'Community Member',
+        reason: (r.reason as AdminReport['reason']) || 'Inaccurate Coordinates',
+        details: r.details || '',
+        status: (r.status as 'OPEN' | 'INVESTIGATING' | 'RESOLVED') || 'OPEN',
+        created_at: new Date(r.created_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+      };
+    });
+  } catch {
+    return [];
+  }
 }
