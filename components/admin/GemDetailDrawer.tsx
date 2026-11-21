@@ -140,7 +140,7 @@ export function GemDetailDrawer({
               </span>
               <span>·</span>
               <span className="flex items-center gap-1">
-                <CategoryIcon name={place.category?.name} className="h-3.5 w-3.5 text-primary" />
+                <CategoryIcon slug={place.category?.slug} name={place.category?.name} icon={place.category?.icon} className="h-3.5 w-3.5 text-primary" />
                 {place.category?.name || 'Uncategorized'}
               </span>
             </div>

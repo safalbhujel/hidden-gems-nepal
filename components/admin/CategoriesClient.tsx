@@ -93,7 +93,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2.5">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <CategoryIcon name={cat.name} className="h-4 w-4" />
+                      <CategoryIcon slug={cat.slug} name={cat.name} icon={cat.icon} className="h-4 w-4" />
                     </div>
                     <span className="font-bold text-foreground">{cat.name}</span>
                   </div>

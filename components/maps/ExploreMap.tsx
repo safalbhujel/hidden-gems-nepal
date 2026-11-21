@@ -563,7 +563,7 @@ export function ExploreMap({
                                   />
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center text-primary">
-                                    <CategoryIcon name={place.category?.name} className="h-4 w-4" />
+                                    <CategoryIcon slug={place.category?.slug} name={place.category?.name} className="h-4 w-4" />
                                   </div>
                                 )}
                               </div>
@@ -645,7 +645,7 @@ export function ExploreMap({
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center text-primary">
-                                  <CategoryIcon name={place.category?.name} className="h-5 w-5" />
+                                  <CategoryIcon slug={place.category?.slug} name={place.category?.name} className="h-5 w-5" />
                                 </div>
                               )}
                               <div className="absolute bottom-0.5 right-0.5 flex items-center gap-0.5 rounded-sm bg-black/80 px-1 text-[9px] font-bold text-[#FF8500]">

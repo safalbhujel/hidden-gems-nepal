@@ -194,7 +194,7 @@ export function PendingModerationClient({ initialPending }: PendingModerationCli
                       </p>
 
                       <div className="mt-1 flex items-center gap-1 text-[10px] text-primary font-semibold">
-                        <CategoryIcon name={place.category?.name} className="h-3 w-3" />
+                        <CategoryIcon slug={place.category?.slug} name={place.category?.name} icon={place.category?.icon} className="h-3 w-3" />
                         <span>{place.category?.name || 'General'}</span>
                       </div>
                     </div>

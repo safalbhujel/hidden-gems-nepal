@@ -57,6 +57,7 @@ export function PlaceCard({ place, className }: PlaceCardProps) {
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
               <CategoryIcon
                 name={place.categories?.name}
+                icon={place.categories?.icon}
                 className="h-12 w-12 text-primary opacity-30"
               />
             </div>
@@ -75,7 +76,7 @@ export function PlaceCard({ place, className }: PlaceCardProps) {
           {place.categories && (
             <div className="absolute bottom-3 left-3">
               <Badge className="bg-background/90 text-foreground border-0 text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1">
-                <CategoryIcon name={place.categories.name} className="h-3 w-3 text-primary" />
+                <CategoryIcon name={place.categories.name} icon={place.categories.icon} className="h-3 w-3 text-primary" />
                 <span>{place.categories.name}</span>
               </Badge>
             </div>

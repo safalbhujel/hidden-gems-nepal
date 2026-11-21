@@ -355,7 +355,7 @@ export function GemsManagementClient({ initialPlaces }: GemsManagementClientProp
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-primary">
-                                <CategoryIcon name={place.category?.name} className="h-4 w-4" />
+                                <CategoryIcon slug={place.category?.slug} name={place.category?.name} icon={place.category?.icon} className="h-4 w-4" />
                               </div>
                             )}
                           </div>
@@ -373,7 +373,7 @@ export function GemsManagementClient({ initialPlaces }: GemsManagementClientProp
                       {/* Category */}
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground">
-                          <CategoryIcon name={place.category?.name} className="h-3 w-3 text-primary" />
+                          <CategoryIcon slug={place.category?.slug} name={place.category?.name} icon={place.category?.icon} className="h-3 w-3 text-primary" />
                           <span>{place.category?.name || 'General'}</span>
                         </span>
                       </td>
