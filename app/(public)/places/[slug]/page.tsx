@@ -16,6 +16,8 @@ import { getPlaceBySlug } from '@/lib/queries/places'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { PlaceGallery } from '@/components/places/PlaceGallery'
 import { PlaceMetadata } from '@/components/places/PlaceMetadata'
+import { PlaceSocialMediaSources } from '@/components/places/PlaceSocialMediaSources'
+import { parseMediaSources } from '@/lib/utils/media'
 import { SaveButton } from '@/components/places/SaveButton'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -261,6 +263,17 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
 
             {/* Trip details metadata grid */}
             <PlaceMetadata place={place} />
+
+            {/* Community Footage, Videos & Social Redirects */}
+            {place.video_url && parseMediaSources(place.video_url).length > 0 && (
+              <>
+                <Separator />
+                <PlaceSocialMediaSources
+                  sources={parseMediaSources(place.video_url)}
+                  placeName={place.name}
+                />
+              </>
+            )}
 
             <Separator />
 
