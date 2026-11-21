@@ -41,9 +41,22 @@ export async function GET(request: Request) {
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('username')
+            .select('username, avatar_url')
             .eq('id', user.id)
             .maybeSingle();
+
+          // Automatically detect Google profile image on login and make it default
+          const rawGoogle = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+          const googlePic = typeof rawGoogle === 'string' && rawGoogle.trim() ? rawGoogle.trim() : null;
+          if (!profile?.avatar_url && googlePic) {
+            await supabase
+              .from('profiles')
+              .update({
+                avatar_url: googlePic,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', user.id);
+          }
 
           const hasUsername = Boolean(profile?.username || user.user_metadata?.username);
           if (!hasUsername) {

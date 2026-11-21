@@ -71,6 +71,17 @@ export default async function ProfilePage() {
       .eq('user_id', user.id),
   ]);
 
+  // If user signed in via Google and has no avatar saved yet, automatically set it
+  const rawGoogle = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+  const googlePic = typeof rawGoogle === 'string' && rawGoogle.trim() ? rawGoogle.trim() : null;
+  if (profileRes.data && !profileRes.data.avatar_url && googlePic) {
+    profileRes.data.avatar_url = googlePic;
+    await supabase
+      .from('profiles')
+      .update({ avatar_url: googlePic, updated_at: new Date().toISOString() })
+      .eq('id', user.id);
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto max-w-6xl px-4 pt-8">

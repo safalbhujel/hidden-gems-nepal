@@ -286,21 +286,20 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 text-center shadow-lg">
+      <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-card p-10 text-center shadow-md">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
-          <CheckCircle2 className="h-10 w-10" />
+          <CheckCircle2 className="h-9 w-9" />
         </div>
-        <h2 className="text-2xl font-bold">Gem Submitted for Review!</h2>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground">
-          Thank you for contributing to HiddenGems Nepal! Our local moderators will verify the
-          details, photos, and footage, then publish it to the explore map shortly.
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Location Recorded for Review</h2>
+        <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
+          Thank you for documenting this location. Our field team verifies the trail notes, coordinates, and media before publishing to the explore map.
         </p>
         <div className="mt-6 flex gap-3">
           <Button onClick={() => router.push('/explore')} variant="default">
-            Explore All Gems
+            Explore Map Directory
           </Button>
           <Button onClick={() => setIsSuccess(false)} variant="outline">
-            Submit Another Gem
+            Submit Another Location
           </Button>
         </div>
       </div>
@@ -316,10 +315,10 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
       )}
 
-      {/* ── Section 1: Gem Identity ────────────────────────────────────────── */}
+      {/* ── Section 1: Location Identity ─────────────────────────────────── */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
         <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
-          <span>1. Gem Identity</span>
+          <span>1. Location Identity</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -329,7 +328,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
               id="name"
               name="name"
               required
-              placeholder="e.g. Tindhare Jharna, Secret River Beach"
+              placeholder="e.g. Tindhare Falls, Dudhkunda Ridge"
             />
           </div>
 
@@ -341,7 +340,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
               required
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option value="">Select a category</option>
+              <option value="">Select category</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -352,23 +351,23 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="why_special">What makes this place special? *</Label>
+          <Label htmlFor="why_special">What makes this location distinct? *</Label>
           <Input
             id="why_special"
             name="why_special"
             required
-            placeholder="e.g. Looks just like the Jurassic Park waterfall; completely uncrowded on weekdays."
+            placeholder="e.g. Three-tiered glacial cascade surrounded by natural amphitheater rock walls."
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Detailed Description *</Label>
+          <Label htmlFor="description">Detailed Description & Terrain *</Label>
           <textarea
             id="description"
             name="description"
             required
             rows={4}
-            placeholder="Share the full vibe, what to expect, and how you discovered it…"
+            placeholder="Detail the approach route, trail conditions, topography, and surrounding atmosphere…"
             className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
@@ -416,20 +415,19 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
       </div>
 
-      {/* ── Section 3: Photos, Videos & Social Links (Multi-media & Redirecters) ─ */}
+      {/* ── Section 3: Visual Documentation & Media Sources ─────────────── */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-6">
         <div>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <span>3. Photos, Videos & Social Links</span>
+              <span>3. Visual Documentation & Sources</span>
             </h3>
             <span className="text-xs text-muted-foreground font-medium">
               {images.length} photos · {mediaSources.length} sources
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Add high quality photos, direct video footage, or paste links to Instagram Reels, TikTok, YouTube,
-            Facebook, X, or web blogs. Links will act as direct redirecters to credit original creators.
+            Attach verified photographs, direct video footage, or creator links (Instagram Reels, TikTok, YouTube, X). Links provide direct attribution and redirect to the original creator.
           </p>
         </div>
 
@@ -714,29 +712,29 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
       </div>
 
-      {/* ── Section 4: Practical Tips & Logistics ───────────────────────────── */}
+      {/* ── Section 4: Field Advisory & Logistics ─────────────────────────── */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
-        <h3 className="text-lg font-bold text-foreground">4. Practical Tips</h3>
+        <h3 className="text-lg font-bold text-foreground">4. Field Advisory & Logistics</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="budget">Estimated Budget</Label>
-            <Input id="budget" name="budget" placeholder="e.g. Free, NPR 500 - 1000" />
+            <Label htmlFor="budget">Estimated Expense</Label>
+            <Input id="budget" name="budget" placeholder="e.g. Free, NPR 500 - 1000 local permits" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="best_season">Best Season / Time</Label>
-            <Input id="best_season" name="best_season" placeholder="e.g. Autumn / Spring, Early Morning" />
+            <Label htmlFor="best_season">Recommended Season / Timing</Label>
+            <Input id="best_season" name="best_season" placeholder="e.g. Autumn / Spring, early morning ascent" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="travel_tips">Insider Tips for Visitors</Label>
+          <Label htmlFor="travel_tips">Field Notes & Access Advisory</Label>
           <textarea
             id="travel_tips"
             name="travel_tips"
             rows={2}
-            placeholder="e.g. Wear waterproof boots, best tea stall is right across the bridge…"
+            placeholder="e.g. Rocky trail requires sturdy boots; dry riverbed crossing safe only before monsoon…"
             className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
@@ -748,12 +746,12 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Submitting Gem…</span>
+              <span>Registering Location…</span>
             </>
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              <span>Submit for Moderation</span>
+              <span>Submit for Verification</span>
             </>
           )}
         </Button>
