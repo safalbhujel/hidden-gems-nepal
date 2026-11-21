@@ -464,15 +464,15 @@ export function ExploreMap({
     <div className={`relative flex flex-col overflow-hidden rounded-2xl border border-border bg-muted/20 ${className}`}>
       {/* ── Floating Map Top Controls Overlay (Z-Index 30) ────────────────── */}
       <div className="pointer-events-none absolute inset-x-0 top-3 z-30 px-3 sm:px-4 flex flex-col gap-2">
-        {/* Row 1: Search Dialogue Bar + Quick Actions (Desktop & Mobile) */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Place Search Bar + Near Me + Gem Count */}
-          <div className="flex items-center gap-2 flex-1 max-w-full sm:max-w-md lg:max-w-lg">
+        {/* Row 1: Spacious Search Dialogue Bar + Quick Actions (Desktop & Mobile) */}
+        <div className="flex items-center justify-between gap-2.5">
+          {/* Left: Expansive Place Search Bar */}
+          <div className="flex items-center gap-2 flex-1 max-w-full lg:max-w-2xl xl:max-w-3xl">
             {/* Search Dialogue Box */}
             <div ref={searchContainerRef} className="pointer-events-auto relative flex-1">
               {/* Search Trigger Bar */}
               <div
-                className={`group relative flex items-center h-10 w-full rounded-2xl border transition-all duration-200 bg-background/95 dark:bg-background/90 backdrop-blur-xl shadow-[0_8px_25px_rgba(0,0,0,0.10)] ${
+                className={`group relative flex items-center h-11 w-full rounded-2xl border transition-all duration-200 bg-background/95 dark:bg-background/90 backdrop-blur-xl shadow-[0_8px_25px_rgba(0,0,0,0.10)] ${
                   isSearchOpen
                     ? 'border-[#FF8500] ring-2 ring-[#FF8500]/25'
                     : 'border-border/80 hover:border-border'
@@ -749,6 +749,10 @@ export function ExploreMap({
               )}
             </div>
 
+          </div>
+
+          {/* Desktop Right Controls: Near Me, Gems Count, Camera Views & Layer Switcher (Visible on lg+) */}
+          <div className="pointer-events-auto hidden lg:flex items-center gap-2.5 shrink-0 pr-12">
             {/* Near Me Button */}
             <Button
               type="button"
@@ -756,31 +760,27 @@ export function ExploreMap({
               size="sm"
               onClick={handleFindNearMe}
               disabled={isLocating}
-              className="pointer-events-auto shrink-0 h-10 px-3 rounded-2xl border border-border/80 bg-background/95 hover:bg-background text-foreground shadow-sm backdrop-blur-xl transition-all active:scale-[0.98]"
+              className="h-11 px-3.5 rounded-2xl border border-border/80 bg-background/95 hover:bg-background text-foreground shadow-sm backdrop-blur-xl transition-all active:scale-[0.98] cursor-pointer"
             >
               {isLocating ? (
                 <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
               ) : (
                 <Navigation className="h-4 w-4 text-[#FF8500]" />
               )}
-              <span className="hidden sm:inline text-xs font-semibold">Near Me</span>
+              <span className="text-xs font-semibold">Near Me</span>
             </Button>
 
             {/* Gem Count Pill (Desktop) */}
-            <div className="pointer-events-auto hidden sm:flex items-center shrink-0 h-10 px-3 rounded-2xl border border-border/80 bg-background/95 text-xs font-semibold text-foreground shadow-sm backdrop-blur-xl">
+            <div className="flex items-center shrink-0 h-11 px-3.5 rounded-2xl border border-border/80 bg-background/95 text-xs font-semibold text-foreground shadow-sm backdrop-blur-xl">
               <span className="text-[#FF8500] font-bold mr-1">{places.length}</span> {places.length === 1 ? 'gem' : 'gems'}
             </div>
-          </div>
-
-          {/* Desktop Right Controls: Camera Views & Layer Switcher (Visible on lg+) */}
-          <div className="pointer-events-auto hidden lg:flex items-center gap-2 shrink-0 pr-12">
             {/* Camera Views */}
-            <div className="flex items-center rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center h-11 rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
               <button
                 type="button"
                 onClick={() => handleCameraPreset('overview')}
                 title="Full 2D Flat Overview of Nepal"
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
                   activePreset === 'overview'
                     ? 'bg-[#FF8500] text-white shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
@@ -794,7 +794,7 @@ export function ExploreMap({
                 type="button"
                 onClick={() => handleCameraPreset('cinematic')}
                 title="3D Cinematic Slanted Perspective"
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
                   activePreset === 'cinematic'
                     ? 'bg-[#FF8500] text-white shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
@@ -808,7 +808,7 @@ export function ExploreMap({
                 type="button"
                 onClick={() => handleCameraPreset('mountain')}
                 title="High Himalayas Dramatic View"
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
                   activePreset === 'mountain'
                     ? 'bg-[#FF8500] text-white shadow-xs'
                     : 'text-muted-foreground hover:text-foreground'
@@ -820,12 +820,12 @@ export function ExploreMap({
             </div>
 
             {/* Style Layer Toggle (Terrain vs Satellite) */}
-            <div className="flex items-center rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center h-11 rounded-2xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur-xl">
               <button
                 type="button"
                 onClick={() => handleToggleLayer('outdoors')}
                 title="Topographic Terrain with 3D Elevation"
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
                   activeLayer === 'outdoors'
                     ? 'bg-foreground text-background shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground'
@@ -838,7 +838,7 @@ export function ExploreMap({
                 type="button"
                 onClick={() => handleToggleLayer('satellite')}
                 title="Photorealistic Satellite Imagery"
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 rounded-xl h-9 px-3 text-xs font-semibold transition-all ${
                   activeLayer === 'satellite'
                     ? 'bg-foreground text-background shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground'

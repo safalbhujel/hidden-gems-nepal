@@ -532,12 +532,14 @@ export function LocationPickerMap({
     >
       {/* ── Floating Map Top Controls Overlay (Z-Index 30) ────────────────── */}
       <div className="pointer-events-none absolute inset-x-0 top-3.5 z-30 px-3.5 sm:px-4 flex flex-col gap-2.5">
-        {/* Row 1: Spacious Search Dialogue Bar + Quick Actions (Desktop & Mobile) */}
-        <div className="flex items-center justify-between gap-2.5">
-          {/* Left: Search Dialogue Box */}
-          <div className="flex items-center gap-2.5 flex-1 max-w-full sm:max-w-md lg:max-w-xl">
-            <div ref={searchContainerRef} className="pointer-events-auto relative flex-1">
-              {/* Search Trigger Bar */}
+        {/* Row 1: Expansive Full-Width Search Dialogue Bar */}
+        <div className="flex items-center justify-between gap-3">
+          {/* Spacious Search Dialogue Box: expands generously */}
+          <div
+            ref={searchContainerRef}
+            className="pointer-events-auto relative flex-1 max-w-full lg:max-w-2xl xl:max-w-3xl"
+          >
+            {/* Search Trigger Bar */}
               <div
                 className={`group relative flex items-center h-11 w-full rounded-2xl border transition-all duration-200 bg-background/95 dark:bg-background/90 backdrop-blur-xl shadow-[0_8px_25px_rgba(0,0,0,0.08)] ${
                   isSearchOpen
@@ -726,24 +728,6 @@ export function LocationPickerMap({
                   ) : null}
                 </div>
               )}
-            </div>
-
-            {/* Near Me Button (Desktop & Tablet) */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleUseCurrentLocation}
-              disabled={isLocating}
-              className="pointer-events-auto shrink-0 h-11 px-3.5 rounded-2xl border border-border/80 bg-background/95 hover:bg-background text-foreground shadow-sm backdrop-blur-xl transition-all active:scale-[0.98]"
-            >
-              {isLocating ? (
-                <Loader2 className="h-4 w-4 animate-spin text-[#FF8500]" />
-              ) : (
-                <Navigation className="h-4 w-4 text-[#FF8500]" />
-              )}
-              <span className="hidden sm:inline text-xs font-semibold">Near Me</span>
-            </Button>
           </div>
 
           {/* Desktop Right Controls: Camera Views & Layer Switcher (Visible on lg+) */}
@@ -947,6 +931,23 @@ export function LocationPickerMap({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* Near Me GPS Action */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleUseCurrentLocation}
+            disabled={isLocating}
+            className="h-8 sm:h-9 px-3 rounded-xl border border-border/80 bg-background hover:bg-muted text-foreground text-xs font-semibold gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+          >
+            {isLocating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#FF8500]" />
+            ) : (
+              <Navigation className="h-3.5 w-3.5 text-[#FF8500]" />
+            )}
+            <span>Near Me</span>
+          </Button>
+
           {value && (
             <button
               type="button"
