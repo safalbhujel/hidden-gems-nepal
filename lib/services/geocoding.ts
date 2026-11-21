@@ -35,15 +35,107 @@ function getToken(): string {
 }
 
 /**
+ * Parses user-provided coordinates in decimal or DMS (Degrees, Minutes, Seconds) formats.
+ * Supports:
+ * - "26.8680° N, 87.3234° E"
+ * - "26°52′05″N, 87°19′24″E" or "26°52'05\"N, 87°19'24\"E"
+ * - "26.8680, 87.3234"
+ * - "27.7172 N, 85.3240 E"
+ * - "[26.8680, 87.3234]"
+ */
+export function parseCoordinates(input: string): { lat: number; lng: number } | null {
+  if (!input || typeof input !== 'string') return null;
+  const clean = input.replace(/[()[\]]/g, '').trim();
+  if (clean.length < 5) return null;
+
+  // 1. DMS format: e.g. 26°52′05″N, 87°19′24″E or 26°52'05"N, 87°19'24"E
+  const dmsRegex =
+    /([0-9]{1,3})[°\s]+([0-9]{1,2})[′'\s]+([0-9]{1,2}(?:\.[0-9]+)?)[″"\s]*([NSEWnsew])?[,\s]+([0-9]{1,3})[°\s]+([0-9]{1,2})[′'\s]+([0-9]{1,2}(?:\.[0-9]+)?)[″"\s]*([NSEWnsew])?/;
+  const dmsMatch = clean.match(dmsRegex);
+  if (dmsMatch) {
+    let d1 =
+      parseFloat(dmsMatch[1]) +
+      parseFloat(dmsMatch[2]) / 60 +
+      parseFloat(dmsMatch[3]) / 3600;
+    const dir1 = (dmsMatch[4] || '').toUpperCase();
+    if (dir1 === 'S' || dir1 === 'W') d1 = -d1;
+
+    let d2 =
+      parseFloat(dmsMatch[5]) +
+      parseFloat(dmsMatch[6]) / 60 +
+      parseFloat(dmsMatch[7]) / 3600;
+    const dir2 = (dmsMatch[8] || '').toUpperCase();
+    if (dir2 === 'S' || dir2 === 'W') d2 = -d2;
+
+    let lat = d1;
+    let lng = d2;
+    // Swap if cardinal direction specifies East first or latitude is out of Nepal bounds
+    if (dir1 === 'E' || dir2 === 'N' || (lat > 50 && lng < 40)) {
+      lat = d2;
+      lng = d1;
+    }
+    return { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
+  }
+
+  // 2. Decimal with Cardinal / Degrees: e.g. 26.8680° N, 87.3234° E or 26.8680, 87.3234
+  const decRegex =
+    /([-+]?[0-9]*\.?[0-9]+)[°\s]*([NSEWnsew])?[,\s]+([-+]?[0-9]*\.?[0-9]+)[°\s]*([NSEWnsew])?/;
+  const decMatch = clean.match(decRegex);
+  if (decMatch) {
+    let v1 = parseFloat(decMatch[1]);
+    const dir1 = (decMatch[2] || '').toUpperCase();
+    if (dir1 === 'S' || dir1 === 'W') v1 = -v1;
+
+    let v2 = parseFloat(decMatch[3]);
+    const dir2 = (decMatch[4] || '').toUpperCase();
+    if (dir2 === 'S' || dir2 === 'W') v2 = -v2;
+
+    let lat = v1;
+    let lng = v2;
+    // Nepal coordinates are typically ~26-31° N and ~80-89° E
+    if (dir1 === 'E' || dir2 === 'N' || (lat > 50 && lng < 40)) {
+      lat = v2;
+      lng = v1;
+    }
+    return { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
+  }
+
+  return null;
+}
+
+/**
  * Forward Geocoding: Search places, landmarks, or addresses across Nepal.
+ * Also parses exact coordinates if entered.
  * Bounded strictly to Nepal via country code and bounding box.
  */
 export async function forwardGeocode(
   query: string,
-  limit: number = 5
+  limit: number = 7
 ): Promise<GeocodingResult[]> {
   const trimmed = query.trim();
   if (!trimmed || trimmed.length < 2) return [];
+
+  // Check if query is exact coordinates
+  const parsedCoords = parseCoordinates(trimmed);
+  if (parsedCoords) {
+    const isInside =
+      parsedCoords.lat >= NEPAL_BOUNDS[0][1] - 0.5 &&
+      parsedCoords.lat <= NEPAL_BOUNDS[1][1] + 0.5 &&
+      parsedCoords.lng >= NEPAL_BOUNDS[0][0] - 0.5 &&
+      parsedCoords.lng <= NEPAL_BOUNDS[1][0] + 0.5;
+
+    return [
+      {
+        id: `coord-${parsedCoords.lat}-${parsedCoords.lng}`,
+        placeName: isInside
+          ? `GPS Coordinates: ${parsedCoords.lat.toFixed(5)}° N, ${parsedCoords.lng.toFixed(5)}° E (Nepal)`
+          : `Coordinates: ${parsedCoords.lat.toFixed(5)}° N, ${parsedCoords.lng.toFixed(5)}° E`,
+        text: `${parsedCoords.lat.toFixed(5)}° N, ${parsedCoords.lng.toFixed(5)}° E`,
+        coordinates: [parsedCoords.lng, parsedCoords.lat],
+        district: isInside ? 'Direct GPS Pin' : 'Outside Nepal',
+      },
+    ];
+  }
 
   const token = getToken();
   const bbox = `${NEPAL_BOUNDS[0][0]},${NEPAL_BOUNDS[0][1]},${NEPAL_BOUNDS[1][0]},${NEPAL_BOUNDS[1][1]}`;
@@ -53,7 +145,6 @@ export async function forwardGeocode(
   url.searchParams.set('country', 'np');
   url.searchParams.set('bbox', bbox);
   url.searchParams.set('limit', String(limit));
-  url.searchParams.set('types', 'poi,address,place,locality,neighborhood');
 
   try {
     const res = await fetch(url.toString(), { next: { revalidate: 3600 } });

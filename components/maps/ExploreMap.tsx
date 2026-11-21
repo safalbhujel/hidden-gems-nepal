@@ -20,6 +20,7 @@ import {
   Search,
   MapPin,
   ChevronRight,
+  Crosshair,
 } from 'lucide-react';
 import {
   NEPAL_BOUNDS,
@@ -32,6 +33,7 @@ import {
 import type { PlaceMapPin } from '@/lib/types/places';
 import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/icons/CategoryIcon';
+import { parseCoordinates } from '@/lib/services/geocoding';
 
 interface ExploreMapProps {
   places: PlaceMapPin[];
@@ -74,6 +76,11 @@ export function ExploreMap({
   const activePlace = selectedPlaceSlug
     ? places.find((p) => p.slug === selectedPlaceSlug) ?? clickedPlace
     : clickedPlace;
+
+  // Direct coordinate detection from search input
+  const detectedCoords = useMemo(() => {
+    return parseCoordinates(searchQuery);
+  }, [searchQuery]);
 
   // Filtered places matching the search query
   const filteredPlaces = useMemo(() => {
@@ -144,6 +151,21 @@ export function ExploreMap({
     },
     [handleSelectPlace]
   );
+
+  // Smooth cinematic flight to direct coordinates
+  const handleFlyToCoords = useCallback((coords: { lat: number; lng: number }) => {
+    setIsSearchOpen(false);
+    setSearchQuery(`${coords.lat.toFixed(5)}° N, ${coords.lng.toFixed(5)}° E`);
+    mapRef.current?.flyTo({
+      center: [coords.lng, coords.lat],
+      zoom: 14.5,
+      pitch: 50,
+      bearing: -15,
+      speed: 1.25,
+      curve: 1.4,
+      essential: true,
+    });
+  }, []);
 
   // Zoom map to fit all matching places from search query
   const handleFitAllMatches = useCallback(() => {
@@ -217,6 +239,10 @@ export function ExploreMap({
         );
       } else if (e.key === 'Enter') {
         e.preventDefault();
+        if (detectedCoords) {
+          handleFlyToCoords(detectedCoords);
+          return;
+        }
         if (currentList[highlightedIndex]) {
           handleFlyToPlace(currentList[highlightedIndex]);
         }
@@ -225,7 +251,16 @@ export function ExploreMap({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchOpen, searchQuery, filteredPlaces, topRatedPlaces, highlightedIndex, handleFlyToPlace]);
+  }, [
+    isSearchOpen,
+    searchQuery,
+    filteredPlaces,
+    topRatedPlaces,
+    highlightedIndex,
+    handleFlyToPlace,
+    detectedCoords,
+    handleFlyToCoords,
+  ]);
 
   // Initialize Mapbox map
   useEffect(() => {
@@ -486,6 +521,41 @@ export function ExploreMap({
               {/* ── Floating Search Dialogue Panel ───────────────────────────── */}
               {isSearchOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 z-50 overflow-hidden rounded-2xl border border-border/80 bg-background/98 dark:bg-background/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] animate-in fade-in-0 zoom-in-95 duration-150">
+                  {/* Exact GPS Coordinate Detection Highlight Card */}
+                  {detectedCoords && (
+                    <div className="p-3 border-b border-[#FF8500]/30 bg-[#FF8500]/10">
+                      <button
+                        type="button"
+                        onClick={() => handleFlyToCoords(detectedCoords)}
+                        className="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-background/95 hover:bg-background border border-[#FF8500]/30 transition-all text-left group cursor-pointer shadow-xs"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FF8500] text-white shadow-xs">
+                            <Crosshair className="h-4 w-4" />
+                          </div>
+                          <div className="truncate">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs sm:text-sm font-bold text-foreground">
+                                Exact Coordinates Detected
+                              </span>
+                              <span className="rounded-md bg-[#FF8500]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#FF8500]">
+                                Direct Jump
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                              {detectedCoords.lat.toFixed(5)}° N, {detectedCoords.lng.toFixed(5)}° E
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 text-xs font-bold text-[#FF8500] shrink-0">
+                          <span>Fly Here</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
                   {/* Quick Query Pills when search input is empty */}
                   {!searchQuery.trim() ? (
                     <div className="p-3.5 space-y-3.5">

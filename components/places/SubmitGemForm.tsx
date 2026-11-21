@@ -160,7 +160,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
               <span>2. Pin the Exact Location</span>
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Use search, click &quot;Near Me&quot;, or drag the pin right onto the trail, waterfall, or cafe.
+              Search landmarks, paste exact coordinates (e.g. 26.8680° N, 87.3234° E), or drag the pin directly onto the spot.
             </p>
           </div>
           <div className="font-mono text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-md self-start sm:self-auto">
@@ -173,7 +173,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
           value={coords}
           onChange={setCoords}
           onLocationDetails={handleLocationDetails}
-          className="h-[460px] md:h-[520px] w-full"
+          className="h-[540px] sm:h-[600px] lg:h-[640px] w-full"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
