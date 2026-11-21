@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-yak" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F1C18"/>
+      <stop offset="50%" stop-color="#3A3835"/>
+      <stop offset="100%" stop-color="#8E735B"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-yak)"/>
+  <!-- Majestic Yak Horns -->
+  <path d="M 52,65 Q 15,60 18,25 Q 32,30 58,55 Z" fill="#D7CCC8"/>
+  <path d="M 18,25 Q 16,18 24,20" stroke="#8D6E63" stroke-width="2" fill="none"/>
+  <path d="M 108,65 Q 145,60 142,25 Q 128,30 102,55 Z" fill="#D7CCC8"/>
+  <path d="M 142,25 Q 144,18 136,20" stroke="#8D6E63" stroke-width="2" fill="none"/>
+  <!-- Sherpa Woolen Tassel Pom-Poms on Horns -->
+  <circle cx="28" cy="36" r="6" fill="#E53935"/>
+  <circle cx="36" cy="44" r="5" fill="#FDD835"/>
+  <circle cx="132" cy="36" r="6" fill="#E53935"/>
+  <circle cx="124" cy="44" r="5" fill="#FDD835"/>
+  <!-- Yak Shaggy Head & Forelock -->
+  <path d="M 50,60 Q 80,48 110,60 Q 120,95 105,125 Q 80,135 55,125 Q 40,95 50,60 Z" fill="#2E241E"/>
+  <!-- Wooly tuft on forehead -->
+  <path d="M 65,55 Q 80,40 95,55 Q 90,75 80,72 Q 70,75 65,55 Z" fill="#4E342E"/>
+  <!-- Muzzle -->
+  <ellipse cx="80" cy="106" rx="22" ry="16" fill="#5D4037"/>
+  <ellipse cx="73" cy="108" rx="4" ry="5" fill="#1C140E"/>
+  <ellipse cx="87" cy="108" rx="4" ry="5" fill="#1C140E"/>
+  <!-- Eyes -->
+  <ellipse cx="62" cy="80" rx="5" ry="4" fill="#1C140E"/>
+  <circle cx="61" cy="79" r="1.5" fill="#FFFFFF"/>
+  <ellipse cx="98" cy="80" rx="5" ry="4" fill="#1C140E"/>
+  <circle cx="97" cy="79" r="1.5" fill="#FFFFFF"/>
+</svg>

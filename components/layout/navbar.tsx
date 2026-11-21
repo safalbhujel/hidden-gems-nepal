@@ -4,21 +4,25 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, Compass, MapPin, PlusCircle, LogOut } from 'lucide-react';
+import { Menu, Mountain, Compass, Gem, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { resolveUserAvatar } from '@/lib/constants/avatars';
 
 const navLinks = [
-  { href: '/', label: 'Home', icon: Compass },
-  { href: '/explore', label: 'Explore', icon: MapPin },
-  { href: '/submit', label: 'Submit Gem', icon: PlusCircle },
+  { href: '/', label: 'Home', icon: Mountain },
+  { href: '/explore', label: 'Explore', icon: Compass },
+  { href: '/submit', label: 'Submit Gem', icon: Gem },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [username, setUsername] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    username: string;
+    avatarUrl: string;
+  } | null>(null);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -32,7 +36,7 @@ export function Navbar() {
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('username')
+            .select('username, avatar_url')
             .eq('id', user.id)
             .maybeSingle();
 
@@ -41,9 +45,15 @@ export function Navbar() {
             user.user_metadata?.username ||
             user.email?.split('@')[0] ||
             null;
-          setUsername(handle);
+
+          if (handle) {
+            const { avatarUrl } = resolveUserAvatar(profile?.avatar_url, user.user_metadata);
+            setUserProfile({ username: handle, avatarUrl });
+          } else {
+            setUserProfile(null);
+          }
         } else {
-          setUsername(null);
+          setUserProfile(null);
         }
       } catch (err) {
         console.error('[Navbar] User fetch error:', err);
@@ -58,7 +68,7 @@ export function Navbar() {
       if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('username')
+          .select('username, avatar_url')
           .eq('id', session.user.id)
           .maybeSingle();
 
@@ -67,9 +77,15 @@ export function Navbar() {
           session.user.user_metadata?.username ||
           session.user.email?.split('@')[0] ||
           null;
-        setUsername(handle);
+
+        if (handle) {
+          const { avatarUrl } = resolveUserAvatar(profile?.avatar_url, session.user.user_metadata);
+          setUserProfile({ username: handle, avatarUrl });
+        } else {
+          setUserProfile(null);
+        }
       } else {
-        setUsername(null);
+        setUserProfile(null);
       }
     });
 
@@ -81,7 +97,7 @@ export function Navbar() {
   async function handleLogout() {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
-    setUsername(null);
+    setUserProfile(null);
     router.push('/');
     router.refresh();
   }
@@ -142,7 +158,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+                  isActive ? 'text-primary font-semibold' : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -154,18 +170,25 @@ export function Navbar() {
 
         {/* Desktop Auth Actions */}
         <div className="hidden md:flex items-center gap-3">
-          {username ? (
+          {userProfile ? (
             <div className="flex items-center gap-2">
               <Link
                 href="/profile"
-                className="group flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-3 py-1.5 text-xs font-semibold hover:border-primary transition-colors"
-                title="View Profile"
+                className="group flex items-center gap-2 rounded-full border border-border/80 bg-background/80 py-1 pl-1 pr-3 text-xs font-semibold hover:border-primary transition-all shadow-xs"
+                title="View Explorer Profile"
               >
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white uppercase shadow-xs">
-                  {username[0]}
+                <div className="relative h-6 w-6 overflow-hidden rounded-full ring-1.5 ring-primary/40 group-hover:ring-primary transition-all bg-muted shrink-0">
+                  <Image
+                    src={userProfile.avatarUrl}
+                    alt={userProfile.username}
+                    width={24}
+                    height={24}
+                    unoptimized
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <span className="text-foreground group-hover:text-primary transition-colors">
-                  @{username}
+                <span className="text-foreground group-hover:text-primary transition-colors font-medium">
+                  @{userProfile.username}
                 </span>
               </Link>
               <Button
@@ -229,34 +252,41 @@ export function Navbar() {
                 href="/"
                 className="flex items-center gap-3 text-lg font-semibold hover:text-primary transition-colors"
               >
-                <Compass className="h-5 w-5 text-primary" /> Home
+                <Mountain className="h-5 w-5 text-primary" /> Home
               </Link>
               <Link
                 href="/explore"
                 className="flex items-center gap-3 text-lg font-semibold hover:text-primary transition-colors"
               >
-                <MapPin className="h-5 w-5 text-primary" /> Explore
+                <Compass className="h-5 w-5 text-primary" /> Explore
               </Link>
               <Link
                 href="/submit"
                 className="flex items-center gap-3 text-lg font-semibold hover:text-primary transition-colors"
               >
-                <PlusCircle className="h-5 w-5 text-primary" /> Submit Gem
+                <Gem className="h-5 w-5 text-primary" /> Submit Gem
               </Link>
               <div className="h-px bg-border" />
 
-              {username ? (
+              {userProfile ? (
                 <div className="flex flex-col gap-3">
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 rounded-xl border border-border/80 bg-background/80 p-3 text-sm font-semibold"
+                    className="flex items-center gap-3 rounded-xl border border-border/80 bg-background/80 p-3 text-sm font-semibold hover:border-primary transition-colors"
                   >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white uppercase">
-                      {username[0]}
+                    <div className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-primary/40 bg-muted shrink-0">
+                      <Image
+                        src={userProfile.avatarUrl}
+                        alt={userProfile.username}
+                        width={36}
+                        height={36}
+                        unoptimized
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div>
-                      <p className="text-[11px] text-muted-foreground">Signed in as</p>
-                      <p className="font-bold text-foreground">@{username}</p>
+                      <p className="text-[11px] text-muted-foreground font-medium">Signed in as</p>
+                      <p className="font-bold text-foreground">@{userProfile.username}</p>
                     </div>
                   </Link>
                   <Button

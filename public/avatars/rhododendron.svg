@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-flower" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F2027"/>
+      <stop offset="50%" stop-color="#203A43"/>
+      <stop offset="100%" stop-color="#2C5364"/>
+    </linearGradient>
+    <linearGradient id="petal-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF1744"/>
+      <stop offset="100%" stop-color="#C2185B"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-flower)"/>
+  <!-- Emerald Leaves -->
+  <path d="M 40,115 Q 15,90 45,75 Q 60,95 40,115 Z" fill="#2E7D32"/>
+  <path d="M 120,115 Q 145,90 115,75 Q 100,95 120,115 Z" fill="#388E3C"/>
+  <path d="M 80,145 Q 60,120 80,105 Q 100,120 80,145 Z" fill="#1B5E20"/>
+  <!-- Lali Gurans (Rhododendron) Petals Cluster -->
+  <!-- Outer Petals -->
+  <circle cx="80" cy="55" r="22" fill="url(#petal-red)"/>
+  <circle cx="58" cy="72" r="22" fill="url(#petal-red)"/>
+  <circle cx="102" cy="72" r="22" fill="url(#petal-red)"/>
+  <circle cx="65" cy="98" r="22" fill="url(#petal-red)"/>
+  <circle cx="95" cy="98" r="22" fill="url(#petal-red)"/>
+  <!-- Inner Bloom Petals -->
+  <circle cx="80" cy="80" r="24" fill="#D50000"/>
+  <circle cx="80" cy="80" r="16" fill="#FF5252"/>
+  <!-- Center Golden Pistils & Stamen -->
+  <circle cx="80" cy="80" r="7" fill="#FFD700"/>
+  <circle cx="75" cy="75" r="2" fill="#FFF59D"/>
+  <circle cx="85" cy="75" r="2" fill="#FFF59D"/>
+  <circle cx="75" cy="85" r="2" fill="#FFF59D"/>
+  <circle cx="85" cy="85" r="2" fill="#FFF59D"/>
+  <circle cx="80" cy="72" r="2" fill="#FFF59D"/>
+</svg>

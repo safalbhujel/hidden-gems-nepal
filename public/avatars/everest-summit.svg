@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-summit" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A0B2E"/>
+      <stop offset="50%" stop-color="#3D1255"/>
+      <stop offset="100%" stop-color="#FF5722"/>
+    </linearGradient>
+    <linearGradient id="goggle-reflect" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9100"/>
+      <stop offset="50%" stop-color="#FF1744"/>
+      <stop offset="100%" stop-color="#D500F9"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-summit)"/>
+  <!-- Everest Summit Pyramid in Golden Dawn -->
+  <polygon points="80,18 20,110 140,110" fill="#2A1B3D" opacity="0.7"/>
+  <polygon points="80,18 100,50 60,50" fill="#FFE082" opacity="0.9"/>
+  <!-- Down Suit Parka Hood -->
+  <ellipse cx="80" cy="98" rx="48" ry="46" fill="#FF8500"/>
+  <ellipse cx="80" cy="98" rx="42" ry="40" fill="#E65100"/>
+  <!-- Sherpa Fur Rimming -->
+  <path d="M 38,100 Q 35,70 60,60 Q 80,55 100,60 Q 125,70 122,100 Q 120,130 80,132 Q 40,130 38,100 Z" fill="#FFE082" opacity="0.35"/>
+  <!-- Face Opening -->
+  <ellipse cx="80" cy="96" rx="30" ry="24" fill="#212121"/>
+  <!-- Goggles Strap -->
+  <rect x="42" y="86" width="76" height="14" rx="7" fill="#111111"/>
+  <!-- High Altitude Snow Goggles Lens with Mountain Reflection -->
+  <rect x="52" y="83" width="56" height="20" rx="9" fill="url(#goggle-reflect)"/>
+  <!-- Mountain reflection glint on lens -->
+  <polygon points="68,98 80,88 92,98" fill="#FFFFFF" opacity="0.5"/>
+  <path d="M 56,87 L 70,87" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  <!-- Oxygen mask / Balaclava below goggles -->
+  <path d="M 64,103 Q 80,100 96,103 L 90,122 Q 80,126 70,122 Z" fill="#37474F"/>
+  <!-- Oxygen valve circle -->
+  <circle cx="80" cy="113" r="5" fill="#263238" stroke="#78909C" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-danphe" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#091B3A"/>
+      <stop offset="50%" stop-color="#0E4B75"/>
+      <stop offset="100%" stop-color="#00C9FF"/>
+    </linearGradient>
+    <linearGradient id="feather-rainbow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E676"/>
+      <stop offset="35%" stop-color="#00B0FF"/>
+      <stop offset="70%" stop-color="#651FFF"/>
+      <stop offset="100%" stop-color="#FF3D00"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-danphe)"/>
+  <!-- Danphe Crest Plumes (National Bird) -->
+  <line x1="80" y1="52" x2="80" y2="24" stroke="#00E676" stroke-width="2"/>
+  <circle cx="80" cy="22" r="5" fill="#00E676"/>
+  <line x1="75" y1="53" x2="65" y2="28" stroke="#00B0FF" stroke-width="2"/>
+  <circle cx="63" cy="27" r="4.5" fill="#00B0FF"/>
+  <line x1="85" y1="53" x2="95" y2="28" stroke="#00B0FF" stroke-width="2"/>
+  <circle cx="97" cy="27" r="4.5" fill="#00B0FF"/>
+  <line x1="72" y1="55" x2="52" y2="36" stroke="#651FFF" stroke-width="2"/>
+  <circle cx="50" cy="35" r="4" fill="#651FFF"/>
+  <line x1="88" y1="55" x2="108" y2="36" stroke="#651FFF" stroke-width="2"/>
+  <circle cx="110" cy="35" r="4" fill="#651FFF"/>
+  <!-- Head & Neck -->
+  <path d="M 60,65 Q 80,48 100,65 Q 115,85 110,120 Q 80,135 50,120 Q 45,85 60,65 Z" fill="url(#feather-rainbow)"/>
+  <!-- Iridescent Blue Eye Patch -->
+  <circle cx="88" cy="72" r="10" fill="#00E5FF"/>
+  <circle cx="88" cy="72" r="5" fill="#1A237E"/>
+  <circle cx="86" cy="70" r="1.5" fill="#FFFFFF"/>
+  <!-- Curved Beak -->
+  <path d="M 98,72 Q 120,75 125,84 Q 105,86 98,78 Z" fill="#FFC107"/>
+  <!-- Metallic Throat Feathers -->
+  <ellipse cx="78" cy="98" rx="22" ry="16" fill="#651FFF" opacity="0.85"/>
+  <ellipse cx="76" cy="112" rx="20" ry="12" fill="#FF3D00" opacity="0.9"/>
+</svg>

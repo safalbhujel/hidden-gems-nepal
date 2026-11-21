@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-gorkha" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A0000"/>
+      <stop offset="50%" stop-color="#2B0505"/>
+      <stop offset="100%" stop-color="#141414"/>
+    </linearGradient>
+    <linearGradient id="steel-blade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#B0BEC5"/>
+      <stop offset="100%" stop-color="#546E7A"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-gorkha)"/>
+  <!-- Crossed Traditional Nepali Khukuris (Brave Scout Emblem) -->
+  <!-- Left to Right Khukuri -->
+  <g transform="rotate(35 80 80)">
+    <!-- Blade with signature forward curve -->
+    <path d="M 77,20 Q 84,40 92,70 Q 94,88 88,105 L 82,105 Q 86,85 80,65 Q 73,45 77,20 Z" fill="url(#steel-blade)"/>
+    <!-- Kauda / Cho notch near hilt -->
+    <circle cx="84" cy="98" r="2.5" fill="#4A0000"/>
+    <!-- Brass Bolster -->
+    <rect x="79" y="105" width="12" height="5" rx="1" fill="#FFD700"/>
+    <!-- Traditional Carved Rosewood Hilt -->
+    <rect x="80" y="110" width="10" height="30" rx="3" fill="#3E2723"/>
+    <!-- Brass Rings on Hilt -->
+    <line x1="80" y1="120" x2="90" y2="120" stroke="#FFD700" stroke-width="2"/>
+    <line x1="80" y1="130" x2="90" y2="130" stroke="#FFD700" stroke-width="2"/>
+    <!-- Brass Pommel -->
+    <ellipse cx="85" cy="142" rx="7" ry="4" fill="#FFD700"/>
+  </g>
+  <!-- Right to Left Khukuri -->
+  <g transform="rotate(-35 80 80)">
+    <!-- Blade -->
+    <path d="M 77,20 Q 84,40 92,70 Q 94,88 88,105 L 82,105 Q 86,85 80,65 Q 73,45 77,20 Z" fill="url(#steel-blade)"/>
+    <!-- Cho notch -->
+    <circle cx="84" cy="98" r="2.5" fill="#4A0000"/>
+    <!-- Brass Bolster -->
+    <rect x="79" y="105" width="12" height="5" rx="1" fill="#FFD700"/>
+    <!-- Hilt -->
+    <rect x="80" y="110" width="10" height="30" rx="3" fill="#3E2723"/>
+    <line x1="80" y1="120" x2="90" y2="120" stroke="#FFD700" stroke-width="2"/>
+    <line x1="80" y1="130" x2="90" y2="130" stroke="#FFD700" stroke-width="2"/>
+    <ellipse cx="85" cy="142" rx="7" ry="4" fill="#FFD700"/>
+  </g>
+  <!-- Center Mountain Shield Crest -->
+  <circle cx="80" cy="80" r="14" fill="#FF8500" stroke="#FFD700" stroke-width="2.5"/>
+  <polygon points="80,70 73,85 87,85" fill="#FFFFFF"/>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-sherpa" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A2980"/>
+      <stop offset="100%" stop-color="#26D0CE"/>
+    </linearGradient>
+    <linearGradient id="dhaka-pat" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D32F2F"/>
+      <stop offset="50%" stop-color="#1976D2"/>
+      <stop offset="100%" stop-color="#FBC02D"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-sherpa)"/>
+  <!-- Mountain ridge backdrop -->
+  <polygon points="20,130 65,70 95,95 130,55 155,130" fill="#FFFFFF" opacity="0.4"/>
+  <!-- Sherpa Explorer Head -->
+  <circle cx="80" cy="92" r="32" fill="#E0A97E"/>
+  <!-- Traditional Sherpa / Nepali Dhaka Topi (Cap) -->
+  <polygon points="50,68 70,35 90,38 110,68" fill="url(#dhaka-pat)"/>
+  <rect x="48" y="65" width="64" height="8" rx="3" fill="#D32F2F"/>
+  <!-- Geometric Dhaka pattern triangles -->
+  <polygon points="62,56 70,44 78,56" fill="#FFFFFF" opacity="0.8"/>
+  <polygon points="82,56 90,44 98,56" fill="#FFFFFF" opacity="0.8"/>
+  <!-- Face details: Friendly smile and warm mountain cheeks -->
+  <circle cx="68" cy="92" r="4" fill="#3E2723"/>
+  <circle cx="92" cy="92" r="4" fill="#3E2723"/>
+  <circle cx="67" cy="91" r="1.2" fill="#FFFFFF"/>
+  <circle cx="91" cy="91" r="1.2" fill="#FFFFFF"/>
+  <ellipse cx="62" cy="98" rx="5" ry="3" fill="#FF8A80" opacity="0.6"/>
+  <ellipse cx="98" cy="98" rx="5" ry="3" fill="#FF8A80" opacity="0.6"/>
+  <!-- Smile -->
+  <path d="M 72,104 Q 80,112 88,104" stroke="#3E2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Climbing jacket collar and rope coil -->
+  <path d="M 44,124 Q 80,118 116,124 L 125,160 L 35,160 Z" fill="#FF8500"/>
+  <path d="M 52,130 Q 80,140 108,130" stroke="#FDD835" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

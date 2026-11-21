@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="bg-snow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F2027"/>
+      <stop offset="50%" stop-color="#203A43"/>
+      <stop offset="100%" stop-color="#2C5364"/>
+    </linearGradient>
+    <linearGradient id="fur-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#CFD8DC"/>
+    </linearGradient>
+    <linearGradient id="eye-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE"/>
+      <stop offset="100%" stop-color="#4FACFE"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg-snow)"/>
+  <!-- Mountain silhouette in background -->
+  <polygon points="10,140 50,75 80,110 115,65 155,140" fill="#37474F" opacity="0.6"/>
+  <polygon points="50,75 62,90 40,90" fill="#ECEFF1" opacity="0.7"/>
+  <polygon points="115,65 125,82 105,82" fill="#ECEFF1" opacity="0.7"/>
+  <!-- Leopard Ears -->
+  <polygon points="40,55 58,22 75,55" fill="#B0BEC5"/>
+  <polygon points="45,52 58,28 70,52" fill="#FFCDD2"/>
+  <polygon points="85,55 102,22 120,55" fill="#B0BEC5"/>
+  <polygon points="90,52 102,28 115,52" fill="#FFCDD2"/>
+  <!-- Leopard Head -->
+  <circle cx="80" cy="85" r="46" fill="url(#fur-grad)"/>
+  <!-- Muzzle -->
+  <ellipse cx="80" cy="98" rx="22" ry="16" fill="#FFFFFF"/>
+  <polygon points="74,90 86,90 80,97" fill="#37474F"/>
+  <path d="M 80,97 L 80,105 M 80,105 Q 73,110 68,105 M 80,105 Q 87,110 92,105" stroke="#37474F" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Whiskers -->
+  <line x1="55" y1="99" x2="28" y2="94" stroke="#ECEFF1" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="55" y1="103" x2="30" y2="104" stroke="#ECEFF1" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="105" y1="99" x2="132" y2="94" stroke="#ECEFF1" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="105" y1="103" x2="130" y2="104" stroke="#ECEFF1" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Piercing Eyes -->
+  <ellipse cx="62" cy="74" rx="8" ry="6" fill="url(#eye-cyan)"/>
+  <circle cx="62" cy="74" r="3" fill="#1A237E"/>
+  <circle cx="60" cy="72" r="1.5" fill="#FFFFFF"/>
+  <ellipse cx="98" cy="74" rx="8" ry="6" fill="url(#eye-cyan)"/>
+  <circle cx="98" cy="74" r="3" fill="#1A237E"/>
+  <circle cx="96" cy="72" r="1.5" fill="#FFFFFF"/>
+  <!-- Spot rosettes -->
+  <circle cx="80" cy="55" r="3" fill="#546E7A"/>
+  <circle cx="70" cy="60" r="2.5" fill="#546E7A"/>
+  <circle cx="90" cy="60" r="2.5" fill="#546E7A"/>
+  <circle cx="48" cy="80" r="3" fill="#546E7A"/>
+  <circle cx="112" cy="80" r="3" fill="#546E7A"/>
+  <circle cx="52" cy="95" r="2" fill="#546E7A"/>
+  <circle cx="108" cy="95" r="2" fill="#546E7A"/>
+</svg>
