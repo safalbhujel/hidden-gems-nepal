@@ -21,9 +21,16 @@ import {
   Minus,
   Trash2,
   Edit3,
+  Maximize2,
+  Compass,
+  Landmark,
+  Waves,
+  Trees,
+  Sun,
 } from 'lucide-react';
 import {
   NEPAL_BOUNDS,
+  NEPAL_CENTER,
   MAP_CONFIG,
   isWithinNepal,
   setupEnhancedMap,
@@ -106,6 +113,7 @@ export function LocationPickerMap({
   const [currentAddress, setCurrentAddress] = useState<string>('Kathmandu, Bagmati Province, Nepal');
   const [copiedCoords, setCopiedCoords] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [activeQuickPreset, setActiveQuickPreset] = useState<string | null>(null);
 
   // Instant coordinate detection from input (supports decimal degrees & DMS formats)
   const detectedCoords = useMemo(() => {
@@ -534,6 +542,96 @@ export function LocationPickerMap({
     });
   };
 
+  // Quick Preset Handlers (Flat, 3D Tilt, Himalayas, Temples, Lakes, Hills, Terai)
+  const handleQuickPreset = (preset: 'flat' | '3dtilt' | 'himalayas' | 'temples' | 'lakes' | 'hills' | 'terai') => {
+    if (!mapRef.current) return;
+    setActiveQuickPreset(preset);
+
+    switch (preset) {
+      case 'flat': {
+        const pinPos = markerRef.current?.getLngLat();
+        const center: [number, number] = pinPos ? [pinPos.lng, pinPos.lat] : NEPAL_CENTER;
+        mapRef.current.flyTo({
+          center,
+          zoom: pinPos ? Math.max(mapRef.current.getZoom(), 12) : 7.2,
+          pitch: 0,
+          bearing: 0,
+          duration: 1000,
+          essential: true,
+        });
+        break;
+      }
+      case '3dtilt': {
+        const pinPos = markerRef.current?.getLngLat();
+        const center: [number, number] = pinPos ? [pinPos.lng, pinPos.lat] : [85.32486, 27.712728];
+        mapRef.current.flyTo({
+          center,
+          zoom: Math.max(mapRef.current.getZoom(), 13),
+          pitch: 55,
+          bearing: -15,
+          duration: 1200,
+          essential: true,
+        });
+        break;
+      }
+      case 'himalayas': {
+        mapRef.current.flyTo({
+          center: [86.7275, 27.8048], // Everest / Khumbu Himalayas
+          zoom: 11,
+          pitch: 68,
+          bearing: 25,
+          duration: 1400,
+          essential: true,
+        });
+        break;
+      }
+      case 'temples': {
+        mapRef.current.flyTo({
+          center: [85.3123, 27.7149], // Kathmandu Valley UNESCO Heritage / Swayambhu
+          zoom: 14.5,
+          pitch: 45,
+          bearing: 10,
+          duration: 1200,
+          essential: true,
+        });
+        break;
+      }
+      case 'lakes': {
+        mapRef.current.flyTo({
+          center: [83.95, 28.21], // Pokhara / Phewa Lake
+          zoom: 13.5,
+          pitch: 52,
+          bearing: -20,
+          duration: 1300,
+          essential: true,
+        });
+        break;
+      }
+      case 'hills': {
+        mapRef.current.flyTo({
+          center: [85.5199, 27.7174], // Nagarkot / Scenic Mid-Hills Ridge
+          zoom: 13,
+          pitch: 55,
+          bearing: 15,
+          duration: 1200,
+          essential: true,
+        });
+        break;
+      }
+      case 'terai': {
+        mapRef.current.flyTo({
+          center: [84.4298, 27.5291], // Chitwan / Rapti River Plains & Terai
+          zoom: 12.5,
+          pitch: 35,
+          bearing: 0,
+          duration: 1200,
+          essential: true,
+        });
+        break;
+      }
+    }
+  };
+
   return (
     <div
       className={`relative flex flex-col rounded-3xl border border-zinc-800/80 bg-[#121316] p-4 sm:p-5 shadow-2xl space-y-3.5 text-white ${className}`}
@@ -605,7 +703,7 @@ export function LocationPickerMap({
                     if (!isSearchOpen) setIsSearchOpen(true);
                   }}
                   onFocus={() => setIsSearchOpen(true)}
-                  placeholder="Search landmark, district, or paste coordinates (e.g. 26.8680° N, 87.3234° E)..."
+                  placeholder="Search landmark, paste coordinates (Ctrl+K)..."
                   className="w-full bg-transparent pr-2 text-xs sm:text-sm font-medium text-white placeholder:text-zinc-400 focus:outline-none"
                 />
 
@@ -628,8 +726,8 @@ export function LocationPickerMap({
                   </button>
                 ) : (
                   <div className="mr-3.5 hidden sm:flex items-center gap-1">
-                    <kbd className="rounded-md border border-zinc-700 bg-zinc-800/80 px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">
-                      ⌘K
+                    <kbd className="rounded-md border border-zinc-700 bg-zinc-800/80 px-1.5 py-0.5 text-[10px] font-mono text-zinc-300 font-semibold shadow-xs">
+                      Ctrl+K
                     </kbd>
                   </div>
                 )}
@@ -804,6 +902,110 @@ export function LocationPickerMap({
             className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors cursor-pointer"
           >
             <Navigation className="h-4 w-4 -rotate-45" />
+          </button>
+        </div>
+
+        {/* ── Vertical Pro Tools Pill (Below Zoom Controls: Perspectives & Landscapes) ── */}
+        <div className="pointer-events-auto absolute top-[138px] right-3.5 z-30 flex flex-col items-center rounded-2xl border border-zinc-700/70 bg-zinc-950/85 backdrop-blur-xl p-1 shadow-lg gap-0.5">
+          {/* Flat 2D View */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('flat')}
+            title="Flat 2D Overview"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === 'flat'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+
+          {/* 3D Tilt View */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('3dtilt')}
+            title="3D Tilt Perspective"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === '3dtilt'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Compass className="h-4 w-4" />
+          </button>
+
+          {/* High Himalayas 3D */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('himalayas')}
+            title="High Himalayas Range (Everest/Langtang)"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === 'himalayas'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Mountain className="h-4 w-4" />
+          </button>
+
+          {/* Subtle separator */}
+          <div className="w-4 h-px bg-zinc-700/60 my-0.5" />
+
+          {/* Temples & UNESCO Heritage */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('temples')}
+            title="Temples & UNESCO Heritage (Kathmandu Valley)"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === 'temples'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Landmark className="h-4 w-4" />
+          </button>
+
+          {/* Lakes & Water */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('lakes')}
+            title="Lakes of Nepal (Phewa, Rara & Alpine Lakes)"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === 'lakes'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Waves className="h-4 w-4" />
+          </button>
+
+          {/* Mid-Hills & Ridges */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('hills')}
+            title="Mid-Hills & Scenic Ridges (Nagarkot/Bandipur)"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === 'hills'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Trees className="h-4 w-4" />
+          </button>
+
+          {/* Terai Plains & Jungles */}
+          <button
+            type="button"
+            onClick={() => handleQuickPreset('terai')}
+            title="Terai Plains & Wildlife (Chitwan)"
+            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all cursor-pointer ${
+              activeQuickPreset === 'terai'
+                ? 'bg-[#FF8500] text-white shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/80'
+            }`}
+          >
+            <Sun className="h-4 w-4" />
           </button>
         </div>
 
