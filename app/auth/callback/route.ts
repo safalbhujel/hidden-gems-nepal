@@ -3,12 +3,15 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
  * Supabase OAuth Callback Route Handler
- * Exchanges auth code for session tokens and securely sets user cookies.
+ * Exchanges auth code for session tokens, checks for username existence,
+ * and seamlessly forwards to /choose-username or the Home page.
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/profile';
+  const rawNext = requestUrl.searchParams.get('next') ?? '/';
+  // If next is '/profile', default to home page as requested
+  const next = rawNext === '/profile' ? '/' : rawNext;
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
 
@@ -26,17 +29,37 @@ export async function GET(request: Request) {
 
       if (!exchangeError) {
         // Enforce safe relative redirect path to prevent open redirect vulnerabilities
-        const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/profile';
+        const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+
+        // Check if user has chosen a username
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        let targetUrl = safeNext;
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const hasUsername = Boolean(profile?.username || user.user_metadata?.username);
+          if (!hasUsername) {
+            targetUrl = `/choose-username?next=${encodeURIComponent(safeNext)}`;
+          }
+        }
 
         const forwardedHost = request.headers.get('x-forwarded-host');
         const isLocalEnv = process.env.NODE_ENV === 'development';
 
         if (isLocalEnv) {
-          return NextResponse.redirect(new URL(safeNext, requestUrl.origin));
+          return NextResponse.redirect(new URL(targetUrl, requestUrl.origin));
         } else if (forwardedHost) {
-          return NextResponse.redirect(`https://${forwardedHost}${safeNext}`);
+          return NextResponse.redirect(`https://${forwardedHost}${targetUrl}`);
         } else {
-          return NextResponse.redirect(new URL(safeNext, requestUrl.origin));
+          return NextResponse.redirect(new URL(targetUrl, requestUrl.origin));
         }
       }
 

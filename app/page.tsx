@@ -5,11 +5,13 @@ import {
   Mountain,
   Flame,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SmartSearchBar } from '@/components/search/SmartSearchBar'
 import { FeaturedGemsClient } from '@/components/places/FeaturedGemsClient'
 import { getPlacesForCards, getCategories } from '@/lib/queries/places'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEO
@@ -30,6 +32,22 @@ const DISTRICTS = [
 ]
 
 export default async function HomePage() {
+  const supabase = await createSupabaseServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let username: string | null = null
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .maybeSingle()
+    username =
+      profile?.username || user.user_metadata?.username || user.email?.split('@')[0] || null
+  }
+
   // Fetch real data — server-side, cached
   const [categories, newestPlaces, topRatedPlaces, mostHiddenPlaces] = await Promise.all([
     getCategories(),
@@ -65,6 +83,13 @@ export default async function HomePage() {
               className="h-20 w-auto object-contain md:h-28"
             />
           </div>
+
+          {username && (
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary animate-in fade-in-50">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Namaste, @{username} ✦ Ready to explore?</span>
+            </div>
+          )}
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5 leading-tight">
             Discover the Nepal that{' '}

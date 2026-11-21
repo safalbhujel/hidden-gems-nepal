@@ -33,7 +33,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectedFrom = searchParams.get('redirectedFrom') || '/profile';
+  const redirectedFrom = searchParams.get('redirectedFrom') || '/';
   const urlError = searchParams.get('error');
 
   const [isLoading, setIsLoading] = useState(false);
