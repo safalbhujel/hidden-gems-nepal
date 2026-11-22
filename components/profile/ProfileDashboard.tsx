@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -23,6 +23,11 @@ import {
   UploadCloud,
   Camera,
   Pencil,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +37,10 @@ import {
   resolveUserAvatar,
 } from '@/lib/constants/avatars';
 import { updateAvatar, updateProfile, uploadAvatar } from '@/app/profile/actions';
+import {
+  sendProfilePasswordOtpAction,
+  verifyProfilePasswordOtpAction,
+} from '@/app/(auth)/actions';
 import { AvatarCropModal } from './AvatarCropModal';
 import { EditPlaceModal } from '@/components/places/EditPlaceModal';
 import type { PlaceCardData } from '@/lib/types/places';
@@ -121,6 +130,26 @@ export function ProfileDashboard({
 
   const [isPending, startTransition] = useTransition();
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Security & Password Change with Email OTP State
+  const [passwordStep, setPasswordStep] = useState<1 | 2>(1);
+  const [passwordOtp, setPasswordOtp] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isPasswordPending, setIsPasswordPending] = useState(false);
+  const [passwordCooldown, setPasswordCooldown] = useState(0);
+  const [passwordFeedback, setPasswordFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Password OTP Resend Cooldown
+  useEffect(() => {
+    if (passwordCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setPasswordCooldown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [passwordCooldown]);
 
   // Resolve user info
   const handle: string =
@@ -260,6 +289,69 @@ export function ProfileDashboard({
         setTimeout(() => setSaveMessage(null), 3500);
       }
     });
+  };
+
+  // ── Password Change Handlers ────────────────────────────────────────────────
+  const handleRequestPasswordOtp = async () => {
+    setIsPasswordPending(true);
+    setPasswordFeedback(null);
+
+    const res = await sendProfilePasswordOtpAction();
+    setIsPasswordPending(false);
+
+    if (res.error) {
+      setPasswordFeedback({ type: 'error', text: res.error });
+    } else {
+      setPasswordStep(2);
+      setPasswordCooldown(60);
+      setPasswordFeedback({
+        type: 'success',
+        text: `A 6-digit confirmation code was sent to ${user.email}.`,
+      });
+    }
+  };
+
+  const handleVerifyAndUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordFeedback(null);
+
+    if (passwordOtp.length !== 6) {
+      setPasswordFeedback({ type: 'error', text: 'Please enter the 6-digit verification code.' });
+      return;
+    }
+
+    if (newPasswordInput.length < 6) {
+      setPasswordFeedback({ type: 'error', text: 'New password must be at least 6 characters.' });
+      return;
+    }
+
+    if (newPasswordInput !== confirmPasswordInput) {
+      setPasswordFeedback({ type: 'error', text: 'Passwords do not match.' });
+      return;
+    }
+
+    setIsPasswordPending(true);
+    const formData = new FormData();
+    formData.append('token', passwordOtp);
+    formData.append('newPassword', newPasswordInput);
+    formData.append('confirmPassword', confirmPasswordInput);
+
+    const res = await verifyProfilePasswordOtpAction(formData);
+    setIsPasswordPending(false);
+
+    if (res?.error) {
+      setPasswordFeedback({ type: 'error', text: res.error });
+    } else {
+      setPasswordFeedback({
+        type: 'success',
+        text: 'Your password was updated successfully with email OTP confirmation.',
+      });
+      setPasswordStep(1);
+      setPasswordOtp('');
+      setNewPasswordInput('');
+      setConfirmPasswordInput('');
+      setTimeout(() => setPasswordFeedback(null), 5000);
+    }
   };
 
   return (
@@ -749,108 +841,303 @@ export function ProfileDashboard({
 
       {/* ── Tab Content: Explorer Settings ───────────────────────────────── */}
       {activeTab === 'settings' && (
-        <form onSubmit={handleSaveSettings} className="space-y-6 max-w-xl">
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-foreground">Dossier Details</h2>
-            <p className="text-xs text-muted-foreground">
-              Manage your public explorer handle, display name, and bio displayed on verified reviews.
-            </p>
-          </div>
-
-          <div className="space-y-4 rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
-            <div className="space-y-1.5">
-              <Label htmlFor="username" className="text-xs font-semibold">
-                Explorer Handle (@username) *
-              </Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-mono">@</span>
-                <Input
-                  id="username"
-                  value={usernameInput}
-                  onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                  placeholder="e.g. wanderer_kathmandu"
-                  className="pl-8 text-xs font-mono"
-                  required
-                />
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                3–20 characters. Lowercase letters, numbers, and underscores only.
+        <div className="space-y-8 max-w-xl">
+          <form onSubmit={handleSaveSettings} className="space-y-6">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-foreground">Dossier Details</h2>
+              <p className="text-xs text-muted-foreground">
+                Manage your public explorer handle, display name, and bio displayed on verified reviews.
               </p>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="fullName" className="text-xs font-semibold">
-                Full Display Name
-              </Label>
-              <Input
-                id="fullName"
-                value={fullNameInput}
-                onChange={(e) => setFullNameInput(e.target.value)}
-                placeholder="e.g. Aarav Sharma"
-                className="text-xs"
-              />
-            </div>
+            <div className="space-y-4 rounded-2xl border border-border/80 bg-card p-6 shadow-xs">
+              <div className="space-y-1.5">
+                <Label htmlFor="username" className="text-xs font-semibold">
+                  Explorer Handle (@username) *
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-mono">@</span>
+                  <Input
+                    id="username"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    placeholder="e.g. wanderer_kathmandu"
+                    className="pl-8 text-xs font-mono"
+                    required
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  3–20 characters. Lowercase letters, numbers, and underscores only.
+                </p>
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="bio" className="text-xs font-semibold">
-                Field Notes & Bio
-              </Label>
-              <textarea
-                id="bio"
-                value={bioInput}
-                onChange={(e) => setBioInput(e.target.value)}
-                rows={3}
-                placeholder="A brief note on your travels — favorite altitudes, solitary trails, or local valleys you know best…"
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-            </div>
-          </div>
-
-          {/* Avatar Option shortcut inside settings */}
-          <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-primary/30 bg-muted shrink-0">
-                <Image
-                  src={currentAvatarUrl}
-                  alt={handle}
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className="h-full w-full object-cover"
+              <div className="space-y-1.5">
+                <Label htmlFor="fullName" className="text-xs font-semibold">
+                  Full Display Name
+                </Label>
+                <Input
+                  id="fullName"
+                  value={fullNameInput}
+                  onChange={(e) => setFullNameInput(e.target.value)}
+                  placeholder="e.g. Aarav Sharma"
+                  className="text-xs"
                 />
               </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Profile Emblem / Photo</p>
-                <p className="text-[11px] text-muted-foreground">Upload from gallery or select from 10 handcrafted emblems</p>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="bio" className="text-xs font-semibold">
+                  Field Notes & Bio
+                </Label>
+                <textarea
+                  id="bio"
+                  value={bioInput}
+                  onChange={(e) => setBioInput(e.target.value)}
+                  rows={3}
+                  placeholder="A brief note on your travels — favorite altitudes, solitary trails, or local valleys you know best…"
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
               </div>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAvatarModalOpen(true)}
-              className="text-xs shrink-0"
-            >
-              Choose Emblem
-            </Button>
-          </div>
 
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isPending} className="gap-2 px-6">
-              {isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Saving Changes…</span>
-                </>
+            {/* Avatar Option shortcut inside settings */}
+            <div className="rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-primary/30 bg-muted shrink-0">
+                  <Image
+                    src={currentAvatarUrl}
+                    alt={handle}
+                    width={48}
+                    height={48}
+                    unoptimized
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Profile Emblem / Photo</p>
+                  <p className="text-[11px] text-muted-foreground">Upload from gallery or select from 10 handcrafted emblems</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAvatarModalOpen(true)}
+                className="text-xs shrink-0"
+              >
+                Choose Emblem
+              </Button>
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isPending} className="gap-2 px-6">
+                {isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving Changes…</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" />
+                    <span>Save Settings</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+
+          {/* ── Account Security & Password with Email OTP ───────────────── */}
+          <div className="space-y-4 pt-6 border-t border-border/70">
+            <div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <h2 className="text-base sm:text-lg font-bold text-foreground">Account Security & Password</h2>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Protect your account. Any password change requires a 6-digit confirmation code dispatched to your registered email ({user.email}).
+              </p>
+            </div>
+
+            {/* Password Feedback Banner */}
+            {passwordFeedback && (
+              <div
+                className={`flex items-start gap-2.5 p-3.5 rounded-xl border text-xs font-semibold animate-in fade-in-50 ${
+                  passwordFeedback.type === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400'
+                    : 'bg-destructive/10 text-destructive border-destructive/20'
+                }`}
+              >
+                {passwordFeedback.type === 'success' ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                )}
+                <span>{passwordFeedback.text}</span>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-xs space-y-4">
+              {passwordStep === 1 ? (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-2">
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>Account Password</span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Request a 6-digit OTP passcode to your email before setting a new password.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRequestPasswordOtp}
+                    disabled={isPasswordPending}
+                    className="text-xs gap-2 shrink-0 cursor-pointer"
+                  >
+                    {isPasswordPending ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Sending OTP…</span>
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="h-3.5 w-3.5 text-primary" />
+                        <span>Change Password</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
               ) : (
-                <>
-                  <Check className="h-4 w-4" />
-                  <span>Save Settings</span>
-                </>
+                <form onSubmit={handleVerifyAndUpdatePassword} className="space-y-4 animate-in fade-in-50">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="passwordOtp" className="text-xs font-semibold">
+                        6-Digit Security Passcode
+                      </Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPasswordStep(1);
+                          setPasswordOtp('');
+                          setPasswordFeedback(null);
+                        }}
+                        className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        id="passwordOtp"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={passwordOtp}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/\D/g, '').slice(0, 6);
+                          setPasswordOtp(cleaned);
+                        }}
+                        placeholder="000000"
+                        disabled={isPasswordPending}
+                        className="pl-10 h-11 text-center font-mono text-base tracking-[0.3em] font-bold rounded-xl"
+                      />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Check your inbox at <span className="font-semibold text-foreground">{user.email}</span>
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="profileNewPassword" className="text-xs font-semibold">
+                      New Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="profileNewPassword"
+                        type={showNewPassword ? 'text' : 'password'}
+                        placeholder="At least 6 characters"
+                        value={newPasswordInput}
+                        onChange={(e) => setNewPasswordInput(e.target.value)}
+                        disabled={isPasswordPending}
+                        className="h-10 pr-10 text-xs rounded-xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        {showNewPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="profileConfirmPassword" className="text-xs font-semibold">
+                      Confirm New Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="profileConfirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Repeat new password"
+                        value={confirmPasswordInput}
+                        onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                        disabled={isPasswordPending}
+                        className="h-10 pr-10 text-xs rounded-xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        tabIndex={-1}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    {passwordCooldown > 0 ? (
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        Resend code in {passwordCooldown}s
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleRequestPasswordOtp}
+                        disabled={isPasswordPending}
+                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-semibold cursor-pointer"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        <span>Resend code</span>
+                      </button>
+                    )}
+
+                    <Button
+                      type="submit"
+                      disabled={isPasswordPending || passwordOtp.length !== 6 || !newPasswordInput || !confirmPasswordInput}
+                      className="text-xs px-5 h-9 rounded-xl cursor-pointer gap-2"
+                    >
+                      {isPasswordPending ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <span>Updating…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Confirm & Set Password</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
               )}
-            </Button>
+            </div>
           </div>
-        </form>
+        </div>
       )}
 
       {/* ── Avatar Selection Modal ───────────────────────────────────────── */}

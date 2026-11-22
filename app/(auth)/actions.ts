@@ -2,6 +2,14 @@
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { validateEmailDomain } from '@/lib/utils/block-burner-emails';
+
+export interface AuthActionResult {
+  success?: boolean;
+  error?: string;
+  email?: string;
+  message?: string;
+}
 
 // 1. Login Action
 export async function login(formData: FormData) {
@@ -189,4 +197,241 @@ export async function resetPassword(formData: FormData) {
   }
 
   redirect('/');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Passwordless 6-Digit Email OTP System
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * 7. Send OTP Action: Validates syntax, blocks disposable burner domains,
+ * and requests a 6-digit OTP from Supabase.
+ */
+export async function sendOtpAction(formData: FormData): Promise<AuthActionResult> {
+  const rawEmail = formData.get('email')?.toString();
+  const validation = validateEmailDomain(rawEmail || '');
+
+  if (!validation.isValid || !validation.sanitizedEmail) {
+    return { error: validation.error || 'Please enter a valid email address.' };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: validation.sanitizedEmail,
+    options: {
+      shouldCreateUser: true,
+    },
+  });
+
+  if (error) {
+    console.error('[sendOtpAction] Supabase error:', error.message);
+    return { error: error.message };
+  }
+
+  return { success: true, email: validation.sanitizedEmail };
+}
+
+/**
+ * 8. Verify OTP Action: Validates the 6-digit token, signs the user in,
+ * verifies username state, and redirects accordingly.
+ */
+export async function verifyOtpAction(formData: FormData): Promise<AuthActionResult> {
+  const email = formData.get('email')?.toString().trim().toLowerCase();
+  const token = formData.get('token')?.toString().trim();
+  const redirectedFrom = formData.get('redirectedFrom')?.toString() || '/';
+
+  if (!email || !token) {
+    return { error: 'Email and 6-digit code are required.' };
+  }
+
+  if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+    return { error: 'Please enter a valid 6-digit verification code.' };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
+  });
+
+  if (error || !data.user) {
+    console.error('[verifyOtpAction] Verification failed:', error?.message);
+    return { error: error?.message || 'Invalid or expired 6-digit code. Please try again.' };
+  }
+
+  // Check username profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', data.user.id)
+    .maybeSingle();
+
+  const hasUsername = Boolean(profile?.username || data.user.user_metadata?.username);
+  const targetDestination =
+    redirectedFrom !== '/profile' && redirectedFrom.startsWith('/') ? redirectedFrom : '/';
+
+  if (!hasUsername) {
+    redirect(`/choose-username?next=${encodeURIComponent(targetDestination)}`);
+  }
+
+  redirect(targetDestination);
+}
+
+/**
+ * 9. Send Password Reset OTP: Requests a 6-digit code for password recovery.
+ */
+export async function sendPasswordResetOtpAction(formData: FormData): Promise<AuthActionResult> {
+  const rawEmail = formData.get('email')?.toString();
+  const validation = validateEmailDomain(rawEmail || '');
+
+  if (!validation.isValid || !validation.sanitizedEmail) {
+    return { error: validation.error || 'Please enter a valid email address.' };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: validation.sanitizedEmail,
+    options: {
+      shouldCreateUser: false, // Don't create account on password reset
+    },
+  });
+
+  if (error) {
+    console.error('[sendPasswordResetOtpAction] Error:', error.message);
+    return { error: error.message };
+  }
+
+  return { success: true, email: validation.sanitizedEmail };
+}
+
+/**
+ * 10. Verify OTP & Set Password: Confirms the 6-digit token and updates password in one step.
+ */
+export async function verifyOtpAndSetPasswordAction(formData: FormData): Promise<AuthActionResult> {
+  const email = formData.get('email')?.toString().trim().toLowerCase();
+  const token = formData.get('token')?.toString().trim();
+  const newPassword = formData.get('newPassword')?.toString();
+  const confirmPassword = formData.get('confirmPassword')?.toString();
+
+  if (!email || !token || !newPassword) {
+    return { error: 'All fields are required.' };
+  }
+
+  if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+    return { error: 'Please enter the 6-digit code sent to your email.' };
+  }
+
+  if (newPassword.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: 'Passwords do not match.' };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  // 1. Verify OTP token
+  const { error: otpError } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
+  });
+
+  if (otpError) {
+    console.error('[verifyOtpAndSetPasswordAction] OTP error:', otpError.message);
+    return { error: 'Invalid or expired 6-digit code. Please verify the code or request a new one.' };
+  }
+
+  // 2. Update password for authenticated session
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  redirect('/');
+}
+
+/**
+ * 11. Send Profile Password OTP: For an active signed-in user wishing to change password
+ */
+export async function sendProfilePasswordOtpAction(): Promise<AuthActionResult> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !user.email) {
+    return { error: 'You must be logged in to update your password.' };
+  }
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: user.email,
+    options: {
+      shouldCreateUser: false,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, email: user.email };
+}
+
+/**
+ * 12. Verify Profile Password OTP & Update Password:
+ */
+export async function verifyProfilePasswordOtpAction(formData: FormData): Promise<AuthActionResult> {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !user.email) {
+    return { error: 'You must be logged in to update your password.' };
+  }
+
+  const token = formData.get('token')?.toString().trim();
+  const newPassword = formData.get('newPassword')?.toString();
+  const confirmPassword = formData.get('confirmPassword')?.toString();
+
+  if (!token || !newPassword) {
+    return { error: 'Verification code and new password are required.' };
+  }
+
+  if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+    return { error: 'Please enter the 6-digit code sent to your email.' };
+  }
+
+  if (newPassword.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: 'Passwords do not match.' };
+  }
+
+  const { error: otpError } = await supabase.auth.verifyOtp({
+    email: user.email,
+    token,
+    type: 'email',
+  });
+
+  if (otpError) {
+    return { error: 'Invalid or expired verification code.' };
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  return { success: true, message: 'Password updated successfully.' };
 }

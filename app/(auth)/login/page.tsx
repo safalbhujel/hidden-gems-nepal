@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { AlertCircle, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
+import { PasswordlessAuth } from '@/components/auth/PasswordlessAuth';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -36,6 +37,7 @@ function LoginForm() {
   const redirectedFrom = searchParams.get('redirectedFrom') || '/';
   const urlError = searchParams.get('error');
 
+  const [authMode, setAuthMode] = useState<'passcode' | 'password'>('passcode');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -143,137 +145,177 @@ function LoginForm() {
         </p>
       </div>
 
-      {/* ── Error Banner ─────────────────────────────────────────────────── */}
-      {serverError && (
-        <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in-50">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="leading-relaxed">{serverError}</span>
-        </div>
-      )}
-
-      {/* ── Social Sign In (Google OAuth) ─────────────────────────────────── */}
-      <div className="mt-6">
+      {/* ── Mode Switcher Segmented Control ─────────────────────────────── */}
+      <div className="mt-6 flex rounded-xl bg-muted/80 p-1 border border-border/60">
         <button
           type="button"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading || isGoogleLoading}
-          className="group flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-border/90 bg-background/80 px-4 text-sm font-medium text-foreground shadow-xs backdrop-blur-md transition-all duration-200 hover:border-border hover:bg-muted/60 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+          onClick={() => {
+            setAuthMode('passcode');
+            setServerError(null);
+          }}
+          className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all cursor-pointer ${
+            authMode === 'passcode'
+              ? 'bg-background text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
         >
-          {isGoogleLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span>Connecting to Google...</span>
-            </>
-          ) : (
-            <>
-              <GoogleIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-              <span>Continue with Google</span>
-            </>
-          )}
+          Passcode (6-Digit OTP)
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMode('password');
+            setServerError(null);
+          }}
+          className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all cursor-pointer ${
+            authMode === 'password'
+              ? 'bg-background text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Password
         </button>
       </div>
 
-      {/* ── Hairline Divider ─────────────────────────────────────────────── */}
-      <div className="relative my-6 text-center">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border/80" />
+      {authMode === 'passcode' ? (
+        <div className="mt-6">
+          <PasswordlessAuth onSwitchToPassword={() => setAuthMode('password')} />
         </div>
-        <span className="relative bg-card px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
-          or continue with email
-        </span>
-      </div>
+      ) : (
+        <>
+          {/* ── Error Banner ─────────────────────────────────────────────────── */}
+          {serverError && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in-50">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed">{serverError}</span>
+            </div>
+          )}
 
-      {/* ── Form Inputs ──────────────────────────────────────────────────── */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="space-y-1.5">
-                <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Email Address
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="explorer@hiddengems.np"
-                    type="email"
-                    autoComplete="email"
-                    disabled={isLoading || isGoogleLoading}
-                    className="h-12 rounded-xl border-border/80 bg-background/70 px-4 text-sm text-foreground transition-all duration-150 placeholder:text-muted-foreground/60 focus:border-primary focus:bg-background focus:ring-3 focus:ring-primary/15"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* ── Social Sign In (Google OAuth) ─────────────────────────────────── */}
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading || isGoogleLoading}
+              className="group flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-border/90 bg-background/80 px-4 text-sm font-medium text-foreground shadow-xs backdrop-blur-md transition-all duration-200 hover:border-border hover:bg-muted/60 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isGoogleLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>Connecting to Google...</span>
+                </>
+              ) : (
+                <>
+                  <GoogleIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                  <span>Continue with Google</span>
+                </>
+              )}
+            </button>
+          </div>
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Password
-                  </FormLabel>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      disabled={isLoading || isGoogleLoading}
-                      className="h-12 rounded-xl border-border/80 bg-background/70 pr-11 pl-4 text-sm text-foreground transition-all duration-150 placeholder:text-muted-foreground/60 focus:border-primary focus:bg-background focus:ring-3 focus:ring-primary/15"
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors hover:text-foreground"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+          {/* ── Hairline Divider ─────────────────────────────────────────────── */}
+          <div className="relative my-6 text-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border/80" />
+            </div>
+            <span className="relative bg-card px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+              or continue with password
+            </span>
+          </div>
+
+          {/* ── Form Inputs ──────────────────────────────────────────────────── */}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Email Address
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="explorer@hiddengems.np"
+                        type="email"
+                        autoComplete="email"
+                        disabled={isLoading || isGoogleLoading}
+                        className="h-12 rounded-xl border-border/80 bg-background/70 px-4 text-sm text-foreground transition-all duration-150 placeholder:text-muted-foreground/60 focus:border-primary focus:bg-background focus:ring-3 focus:ring-primary/15"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Password
+                      </FormLabel>
+                      <Link
+                        href="/forgot-password"
+                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          autoComplete="current-password"
+                          disabled={isLoading || isGoogleLoading}
+                          className="h-12 rounded-xl border-border/80 bg-background/70 pr-11 pl-4 text-sm text-foreground transition-all duration-150 placeholder:text-muted-foreground/60 focus:border-primary focus:bg-background focus:ring-3 focus:ring-primary/15"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          tabIndex={-1}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors hover:text-foreground cursor-pointer"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                disabled={isLoading || isGoogleLoading}
+                className="mt-2 h-12 w-full cursor-pointer rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Signing in...</span>
                   </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button
-            type="submit"
-            disabled={isLoading || isGoogleLoading}
-            className="mt-2 h-12 w-full cursor-pointer rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Signing in...</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span>Sign In to Explorer</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </div>
-            )}
-          </Button>
-        </form>
-      </Form>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span>Sign In to Explorer</span>
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                )}
+              </Button>
+            </form>
+          </Form>
+        </>
+      )}
 
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <div className="mt-7 text-center">
