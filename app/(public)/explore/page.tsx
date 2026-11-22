@@ -1,10 +1,13 @@
 import { Suspense } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
+import { cookies } from 'next/headers'
 import { getPlacesForCards, getPlacesForMap, getCategories, getDistricts } from '@/lib/queries/places'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from '@/lib/admin/auth-edge'
 import { PlaceCardSkeleton } from '@/components/places/PlaceCard'
 import { ExploreViewSwitcher } from '@/components/places/ExploreViewSwitcher'
 import { CategoryIcon } from '@/components/icons/CategoryIcon'
-import type { SortOption } from '@/lib/types/places'
+import type { SortOption, Category, District } from '@/lib/types/places'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Explore Page
@@ -58,11 +61,19 @@ async function PlacesResults({
   categorySlug,
   districtSlug,
   sort,
+  currentUserId,
+  isAdmin,
+  categories,
+  districts,
 }: {
   search?: string
   categorySlug?: string
   districtSlug?: string
   sort: SortOption
+  currentUserId?: string | null
+  isAdmin?: boolean
+  categories?: Category[]
+  districts?: District[]
 }) {
   const [places, mapPins] = await Promise.all([
     getPlacesForCards({
@@ -79,7 +90,16 @@ async function PlacesResults({
     }),
   ])
 
-  return <ExploreViewSwitcher places={places} mapPins={mapPins} />
+  return (
+    <ExploreViewSwitcher
+      places={places}
+      mapPins={mapPins}
+      currentUserId={currentUserId}
+      isAdmin={isAdmin}
+      categories={categories}
+      districts={districts}
+    />
+  )
 }
 
 export default async function ExplorePage({ searchParams }: ExplorePageProps) {
@@ -88,6 +108,15 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   const categorySlug = params.category || undefined
   const districtSlug = params.district || undefined
   const sort: SortOption = isValidSort(params.sort) ? params.sort : 'newest'
+
+  // Fetch auth session & admin credentials
+  const supabase = await createSupabaseServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const cookieStore = await cookies()
+  const adminCookie = cookieStore.get(ADMIN_COOKIE_NAME)?.value
+  const { valid: isAdmin } = await verifyAdminSessionToken(adminCookie)
 
   // Fetch filter data in parallel
   const [categories, districts] = await Promise.all([getCategories(), getDistricts()])
@@ -239,6 +268,10 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             categorySlug={categorySlug}
             districtSlug={districtSlug}
             sort={sort}
+            currentUserId={user?.id ?? null}
+            isAdmin={isAdmin}
+            categories={categories}
+            districts={districts}
           />
         </Suspense>
 

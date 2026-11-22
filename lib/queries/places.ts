@@ -37,17 +37,30 @@ export async function getPlacesForCards(
     .from('places')
     .select(
       `
+      id,
       slug,
       name,
+      status,
+      submitted_by,
       hidden_score,
       average_rating,
       review_count,
-      categories ( name, icon, slug ),
-      districts ( name, slug ),
+      description,
+      why_special,
+      category_id,
+      district_id,
+      budget,
+      best_season,
+      travel_tips,
+      latitude,
+      longitude,
+      map_url,
+      categories ( id, name, icon, slug ),
+      districts ( id, name, slug ),
       place_images ( image_url, sort_order )
     `
     )
-    .eq('status', 'APPROVED')
+    .in('status', ['APPROVED', 'PENDING'])
     .range(offset, offset + fetchLimit - 1)
 
   // ── Text search ───────────────────────────────────────────────────────────
@@ -103,15 +116,28 @@ export async function getPlacesForCards(
     const district = Array.isArray(row.districts) ? row.districts[0] : row.districts
 
     return {
+      id: row.id,
       slug: row.slug,
       name: row.name,
+      status: (row.status as 'APPROVED' | 'PENDING' | string) ?? 'PENDING',
+      submitted_by: row.submitted_by ?? null,
       hidden_score: row.hidden_score ?? 0,
       average_rating: row.average_rating ?? 0,
       review_count: row.review_count ?? 0,
+      description: row.description ?? null,
+      why_special: row.why_special ?? null,
+      category_id: row.category_id ?? null,
+      district_id: row.district_id ?? null,
+      budget: row.budget ?? null,
+      best_season: row.best_season ?? null,
+      travel_tips: row.travel_tips ?? null,
+      latitude: row.latitude ? Number(row.latitude) : null,
+      longitude: row.longitude ? Number(row.longitude) : null,
+      map_url: row.map_url ?? null,
       categories: category
-        ? { name: category.name, icon: category.icon ?? null }
+        ? { id: category.id, name: category.name, icon: category.icon ?? null, slug: category.slug }
         : null,
-      districts: district ? { name: district.name } : null,
+      districts: district ? { id: district.id, name: district.name, slug: district.slug } : null,
       cover_image_url: sortedImages[0]?.image_url ?? null,
     } satisfies PlaceCardData
   })
@@ -137,6 +163,8 @@ export async function getPlaceBySlug(slug: string): Promise<Place | null> {
       category_id,
       district_id,
       submitted_by,
+      latitude,
+      longitude,
       map_url,
       video_url,
       budget,
@@ -166,7 +194,7 @@ export async function getPlaceBySlug(slug: string): Promise<Place | null> {
     `
     )
     .eq('slug', slug)
-    .eq('status', 'APPROVED')
+    .in('status', ['APPROVED', 'PENDING'])
     .single()
 
   if (error) {
@@ -185,12 +213,11 @@ export async function getPlaceBySlug(slug: string): Promise<Place | null> {
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
   )
 
-  // ── Parse lat/lng from location (PostGIS returns as WKT) ─────────────────
-  // Supabase returns PostGIS geography as null when using .select() without
-  // ST_AsGeoJSON; we extract it from map_url or just leave null.
-  // Phase 8 will add real Mapbox/PostGIS ST_AsGeoJSON support.
-  const latitude: number | null = null
-  const longitude: number | null = null
+  // ── Parse lat/lng from data ──────────────────────────────────────────────
+  const latitude: number | null =
+    data.latitude !== null && data.latitude !== undefined ? Number(data.latitude) : null
+  const longitude: number | null =
+    data.longitude !== null && data.longitude !== undefined ? Number(data.longitude) : null
 
   return {
     ...data,
@@ -222,6 +249,7 @@ export async function getPlacesForMap(
       id,
       slug,
       name,
+      status,
       latitude,
       longitude,
       hidden_score,
@@ -232,7 +260,7 @@ export async function getPlacesForMap(
       place_images ( image_url, sort_order )
     `
     )
-    .eq('status', 'APPROVED')
+    .in('status', ['APPROVED', 'PENDING'])
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
 
@@ -276,6 +304,7 @@ export async function getPlacesForMap(
       id: row.id,
       slug: row.slug,
       name: row.name,
+      status: (row.status as 'APPROVED' | 'PENDING' | string) ?? 'PENDING',
       latitude: Number(row.latitude),
       longitude: Number(row.longitude),
       hidden_score: row.hidden_score ?? 0,

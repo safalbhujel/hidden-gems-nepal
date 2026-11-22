@@ -21,6 +21,8 @@ import {
   MapPin,
   ChevronRight,
   Crosshair,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react';
 import {
   NEPAL_BOUNDS,
@@ -332,6 +334,17 @@ export function ExploreMap({
     places.forEach((place) => {
       if (markersRef.current.has(place.id)) return;
 
+      const isApproved = place.status === 'APPROVED';
+      const badgeBg = isApproved
+        ? 'linear-gradient(135deg, #FF8500 0%, #E65100 100%)'
+        : 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)';
+      const arrowColor = isApproved ? '#E65100' : '#1E293B';
+      const pulseColor = isApproved ? 'rgba(255, 133, 0, 0.35)' : 'rgba(245, 158, 11, 0.3)';
+      const borderColor = isApproved ? 'rgba(255, 255, 255, 0.85)' : 'rgba(245, 158, 11, 0.8)';
+      const iconSvg = isApproved
+        ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));"><polyline points="20 6 9 17 4 12"/></svg>`
+        : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+
       const el = document.createElement('div');
       el.className =
         'custom-marker-node cursor-pointer group transition-transform duration-300 hover:scale-120 active:scale-[0.98]';
@@ -342,7 +355,7 @@ export function ExploreMap({
             width: 36px;
             height: 36px;
             border-radius: 9999px;
-            background: rgba(255, 133, 0, 0.35);
+            background: ${pulseColor};
             animation: ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
           "></div>
 
@@ -351,7 +364,7 @@ export function ExploreMap({
             display: flex;
             align-items: center;
             gap: 4.5px;
-            background: linear-gradient(135deg, #FF8500 0%, #E65100 100%);
+            background: ${badgeBg};
             color: #FFFFFF;
             padding: 4px 9px;
             border-radius: 9999px;
@@ -359,14 +372,12 @@ export function ExploreMap({
             font-weight: 800;
             font-size: 11px;
             letter-spacing: 0.02em;
-            box-shadow: 0 6px 18px rgba(255, 133, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.5);
-            border: 1.5px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.5);
+            border: 1.5px solid ${borderColor};
             backdrop-filter: blur(8px);
             transition: all 0.2s ease;
           ">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
-              <path d="M6 3h12l4 6-10 13L2 9z"/>
-            </svg>
+            ${iconSvg}
             <span style="text-shadow: 0 1px 2px rgba(0,0,0,0.4);">${place.hidden_score.toFixed(1)}</span>
             <div style="
               position: absolute;
@@ -377,7 +388,7 @@ export function ExploreMap({
               height: 0;
               border-left: 5px solid transparent;
               border-right: 5px solid transparent;
-              border-top: 5px solid #E65100;
+              border-top: 5px solid ${arrowColor};
             "></div>
           </div>
         </div>
@@ -897,10 +908,21 @@ export function ExploreMap({
             {/* Info */}
             <div className="flex flex-1 flex-col justify-between overflow-hidden pr-4">
               <div>
-                <div className="flex items-center gap-1.5 mb-1">
+                <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                   {activePlace.district && (
                     <span className="text-[10px] font-bold text-[#FF8500] uppercase tracking-wider">
                       {activePlace.district.name}
+                    </span>
+                  )}
+                  {activePlace.status === 'APPROVED' ? (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-500 border border-emerald-500/20">
+                      <CheckCircle2 className="h-2.5 w-2.5" />
+                      <span>Verified</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-500 border border-amber-500/25">
+                      <Clock className="h-2.5 w-2.5" />
+                      <span>Pending Review</span>
                     </span>
                   )}
                   {activePlace.category && (

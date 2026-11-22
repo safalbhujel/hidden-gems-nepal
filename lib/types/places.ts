@@ -63,17 +63,34 @@ export interface Review {
 // Only fetches the fields PlaceCard needs (prevents over-fetching).
 // ─────────────────────────────────────────────────────────────────────────────
 export interface PlaceCardData {
+  id: string
   slug: string
   name: string
+  status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT' | 'ARCHIVED' | string
+  submitted_by: string | null
   hidden_score: number
   average_rating: number
   review_count: number
+  description?: string | null
+  why_special?: string | null
+  category_id?: string | null
+  district_id?: string | null
+  budget?: string | null
+  best_season?: string | null
+  travel_tips?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  map_url?: string | null
   categories: {
+    id?: string
     name: string
     icon: string | null
+    slug?: string
   } | null
   districts: {
+    id?: string
     name: string
+    slug?: string
   } | null
   // Only the first (cover) image
   cover_image_url: string | null
@@ -86,6 +103,7 @@ export interface PlaceMapPin {
   id: string
   slug: string
   name: string
+  status?: 'APPROVED' | 'PENDING' | 'REJECTED' | string
   latitude: number
   longitude: number
   hidden_score: number

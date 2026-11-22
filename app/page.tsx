@@ -164,6 +164,8 @@ export default async function HomePage() {
             sortedNewest={newestPlaces}
             sortedTopRated={topRatedPlaces}
             sortedMostHidden={mostHiddenPlaces}
+            currentUserId={user?.id ?? null}
+            categories={categories}
           />
 
           <div className="mt-8 flex justify-center md:hidden">

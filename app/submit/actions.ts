@@ -207,5 +207,9 @@ export async function submitPlace(formData: FormData): Promise<SubmitPlaceState>
   }
 
   revalidatePath('/explore');
+  revalidatePath('/');
+  revalidatePath('/profile');
+  revalidatePath('/admin/pending');
+  revalidatePath('/admin/gems');
   return { success: true };
 }

@@ -22,6 +22,7 @@ import {
   Shield,
   UploadCloud,
   Camera,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,8 @@ import {
 } from '@/lib/constants/avatars';
 import { updateAvatar, updateProfile, uploadAvatar } from '@/app/profile/actions';
 import { AvatarCropModal } from './AvatarCropModal';
+import { EditPlaceModal } from '@/components/places/EditPlaceModal';
+import type { PlaceCardData } from '@/lib/types/places';
 
 export interface SubmittedPlaceItem {
   id: string;
@@ -104,6 +107,7 @@ export function ProfileDashboard({
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [editingPlace, setEditingPlace] = useState<PlaceCardData | null>(null);
 
   // Profile data states
   const [usernameInput, setUsernameInput] = useState(profile?.username || user.email?.split('@')[0] || '');
@@ -540,20 +544,39 @@ export function ProfileDashboard({
                         </p>
                       )}
 
-                      <div className="pt-2">
-                        {isApproved ? (
-                          <Link
-                            href={`/places/${place.slug}`}
-                            className="inline-flex items-center justify-center gap-1.5 w-full h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs transition-colors"
-                          >
-                            <span>View Public Page</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
-                        ) : (
-                          <div className="text-[11px] text-muted-foreground italic text-center py-1">
-                            Pending moderation review
-                          </div>
-                        )}
+                      <div className="pt-2 flex items-center gap-2">
+                        <Link
+                          href={`/places/${place.slug}`}
+                          className="inline-flex items-center justify-center gap-1.5 flex-1 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs transition-colors"
+                        >
+                          <span>View Public Page</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const cardData: PlaceCardData = {
+                              id: place.id,
+                              name: place.name,
+                              slug: place.slug,
+                              status: place.status,
+                              hidden_score: place.hidden_score,
+                              average_rating: 0,
+                              review_count: 0,
+                              submitted_by: user.id,
+                              categories: null,
+                              districts: districtName ? { name: districtName } : null,
+                              cover_image_url: cover,
+                            };
+                            setEditingPlace(cardData);
+                          }}
+                          className="h-8 px-2.5 text-xs gap-1 hover:border-primary hover:text-primary cursor-pointer"
+                        >
+                          <Pencil className="h-3 w-3 text-primary" />
+                          <span>Edit</span>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -967,6 +990,14 @@ export function ProfileDashboard({
         onConfirm={handleCropConfirmed}
         isUploading={isUploadingAvatar}
       />
+      {/* ── Destination Details Edit Modal ──────────────────────────────── */}
+      {editingPlace && (
+        <EditPlaceModal
+          isOpen={Boolean(editingPlace)}
+          onClose={() => setEditingPlace(null)}
+          place={editingPlace}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import {
   MapPin,
   Star,
@@ -10,13 +11,17 @@ import {
   Tag as TagIcon,
   User,
   Calendar,
+  CheckCircle2,
+  Clock,
 } from 'lucide-react'
 import type { Metadata } from 'next'
-import { getPlaceBySlug } from '@/lib/queries/places'
+import { getPlaceBySlug, getCategories, getDistricts } from '@/lib/queries/places'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from '@/lib/admin/auth-edge'
 import { PlaceGallery } from '@/components/places/PlaceGallery'
 import { PlaceMetadata } from '@/components/places/PlaceMetadata'
 import { PlaceSocialMediaSources } from '@/components/places/PlaceSocialMediaSources'
+import { PlaceEditTrigger } from '@/components/places/PlaceEditTrigger'
 import { parseMediaSources } from '@/lib/utils/media'
 import { SaveButton } from '@/components/places/SaveButton'
 import { Badge } from '@/components/ui/badge'
@@ -115,6 +120,17 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Verify admin session
+  const cookieStore = await cookies()
+  const adminCookie = cookieStore.get(ADMIN_COOKIE_NAME)?.value
+  const { valid: isAdmin } = await verifyAdminSessionToken(adminCookie)
+  const isAuthor = Boolean(user && place.submitted_by === user.id)
+  const canEdit = isAuthor || isAdmin
+
+  const [categories, districts] = canEdit
+    ? await Promise.all([getCategories(), getDistricts()])
+    : [[], []]
+
   // Check if authenticated user has saved this place
   let initialSaved = false
   if (user) {
@@ -129,6 +145,8 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
 
   const hasRating = place.average_rating > 0
   const hasTags = place.place_tags && place.place_tags.length > 0
+  const isApproved = place.status === 'APPROVED'
+  const isPending = place.status === 'PENDING'
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,11 +171,56 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
           ═══════════════════════════════════════════════════════ */}
           <div className="space-y-8 min-w-0">
 
+            {/* Pending Community Notice */}
+            {isPending && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5 flex items-start gap-3.5 text-amber-900 dark:text-amber-200">
+                <Clock className="h-5 w-5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
+                <div className="space-y-1 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-foreground">Community Submission · Pending Verification</span>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
+                      Under Field Review
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed text-xs">
+                    This destination was documented by an explorer and is visible across the platform while awaiting official verification and rating by local field stewards.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Gallery */}
             <PlaceGallery images={place.place_images} placeName={place.name} />
 
             {/* Title block */}
             <div className="space-y-3">
+              {/* Status Badge & Contributor Edit Trigger Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {isApproved && (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 shadow-2xs">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>Verified Hidden Gem · Official</span>
+                    </div>
+                  )}
+                  {isPending && (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 shadow-2xs">
+                      <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
+                      <span>Community Contributed · Pending Verification</span>
+                    </div>
+                  )}
+                </div>
+
+                {canEdit && (
+                  <PlaceEditTrigger
+                    place={place}
+                    categories={categories}
+                    districts={districts}
+                    isAdmin={isAdmin}
+                  />
+                )}
+              </div>
+
               {/* Breadcrumb */}
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 {place.categories && (
