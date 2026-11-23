@@ -82,8 +82,8 @@ export function AdminSettingsClient() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Update the security credentials used to unlock the <span className="font-semibold text-foreground">/admin/login</span> console.
-          Sessions across other devices will require re-authentication with the new key.
+          Update the password used to sign in to the <span className="font-semibold text-foreground">/admin/login</span> page.
+          Other devices will need to sign in again with the new password.
         </p>
 
         {credError && (

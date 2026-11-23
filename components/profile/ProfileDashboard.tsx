@@ -9,6 +9,8 @@ import {
   Bookmark,
   Award,
   Settings,
+  Star,
+  Mountain,
   Copy,
   Check,
   ExternalLink,
@@ -659,7 +661,7 @@ export function ProfileDashboard({
                         )}
                       </div>
                       <div className="absolute bottom-2.5 right-2.5 z-10 bg-black/70 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md backdrop-blur-xs">
-                        💎 Score: {place.hidden_score}
+                        Score: {place.hidden_score}
                       </div>
                     </div>
 
@@ -719,9 +721,9 @@ export function ProfileDashboard({
       {activeTab === 'saved' && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-foreground">Saved Waypoints</h2>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">Saved Places</h2>
             <p className="text-xs text-muted-foreground">
-              Bookmarked spots and trails queued for upcoming expeditions.
+              Places and trails you saved for your next trip.
             </p>
           </div>
 
@@ -730,9 +732,9 @@ export function ProfileDashboard({
               <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <Bookmark className="h-6 w-6" />
               </div>
-              <h3 className="font-bold text-foreground text-sm">No saved waypoints yet</h3>
+              <h3 className="font-bold text-foreground text-sm">No saved places yet</h3>
               <p className="text-xs text-muted-foreground max-w-sm">
-                Browse the interactive map and click the bookmark button on any location to save it here.
+                Browse the map and click the save button on any place to find it here later.
               </p>
               <Link href="/explore">
                 <Button className="mt-2 text-xs gap-1.5">
@@ -765,8 +767,9 @@ export function ProfileDashboard({
                         unoptimized
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute top-2.5 right-2.5 z-10 bg-black/70 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md backdrop-blur-xs">
-                        ★ {place.average_rating && place.average_rating > 0 ? place.average_rating.toFixed(1) : 'New'}
+                      <div className="absolute top-2.5 right-2.5 z-10 bg-black/70 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md backdrop-blur-xs flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        <span>{place.average_rating && place.average_rating > 0 ? place.average_rating.toFixed(1) : 'New'}</span>
                       </div>
                     </div>
 
@@ -793,9 +796,9 @@ export function ProfileDashboard({
       {activeTab === 'badges' && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-foreground">Field Merits & Achievements</h2>
+            <h2 className="text-base sm:text-lg font-bold text-foreground">Badges & Milestones</h2>
             <p className="text-xs text-muted-foreground">
-              Earned through verified trail documentation, accurate coordinates, and genuine traveler insights.
+              Earned by sharing real spots, saving places, and writing helpful tips.
             </p>
           </div>
 
@@ -803,73 +806,73 @@ export function ProfileDashboard({
             {/* Badge 1 */}
             <div className={`p-5 rounded-2xl border ${totalSubmissions >= 1 ? 'border-primary/40 bg-primary/5' : 'border-border/60 bg-muted/20 opacity-60'} space-y-2`}>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">🏔️</span>
+                <Mountain className="h-6 w-6 text-primary" />
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${totalSubmissions >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  {totalSubmissions >= 1 ? 'UNLOCKED' : 'LOCKED'}
+                  {totalSubmissions >= 1 ? 'Earned' : 'Locked'}
                 </span>
               </div>
-              <h4 className="font-bold text-sm text-foreground">Himalayan Pioneer</h4>
-              <p className="text-xs text-muted-foreground">Recorded and documented your first solitary place on the map.</p>
+              <h4 className="font-bold text-sm text-foreground">First Place Shared</h4>
+              <p className="text-xs text-muted-foreground">Shared your first quiet spot on the map.</p>
             </div>
 
             {/* Badge 2 */}
             <div className={`p-5 rounded-2xl border ${totalSaved >= 3 ? 'border-primary/40 bg-primary/5' : 'border-border/60 bg-muted/20 opacity-60'} space-y-2`}>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">🧭</span>
+                <Compass className="h-6 w-6 text-primary" />
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${totalSaved >= 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  {totalSaved >= 3 ? 'UNLOCKED' : 'LOCKED'}
+                  {totalSaved >= 3 ? 'Earned' : 'Locked'}
                 </span>
               </div>
               <h4 className="font-bold text-sm text-foreground">Trail Scout</h4>
-              <p className="text-xs text-muted-foreground">Bookmarked three or more remote destinations for future treks.</p>
+              <p className="text-xs text-muted-foreground">Saved 3 or more places to your wishlist.</p>
             </div>
 
             {/* Badge 3 */}
             <div className={`p-5 rounded-2xl border ${approvedSubmissions >= 1 ? 'border-primary/40 bg-primary/5' : 'border-border/60 bg-muted/20 opacity-60'} space-y-2`}>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">🎖️</span>
+                <Award className="h-6 w-6 text-primary" />
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${approvedSubmissions >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  {approvedSubmissions >= 1 ? 'UNLOCKED' : 'LOCKED'}
+                  {approvedSubmissions >= 1 ? 'Earned' : 'Locked'}
                 </span>
               </div>
-              <h4 className="font-bold text-sm text-foreground">Verified Contributor</h4>
-              <p className="text-xs text-muted-foreground">First submitted location authenticated and published live.</p>
+              <h4 className="font-bold text-sm text-foreground">Verified Spot</h4>
+              <p className="text-xs text-muted-foreground">Your first shared place was checked and published live.</p>
             </div>
 
             {/* Badge 4 */}
             <div className={`p-5 rounded-2xl border ${reviewsCount >= 1 ? 'border-primary/40 bg-primary/5' : 'border-border/60 bg-muted/20 opacity-60'} space-y-2`}>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">✍️</span>
+                <Pencil className="h-6 w-6 text-primary" />
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${reviewsCount >= 1 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  {reviewsCount >= 1 ? 'UNLOCKED' : 'LOCKED'}
+                  {reviewsCount >= 1 ? 'Earned' : 'Locked'}
                 </span>
               </div>
-              <h4 className="font-bold text-sm text-foreground">Field Chronicler</h4>
-              <p className="text-xs text-muted-foreground">Provided essential trail notes, access warnings, or season advice.</p>
+              <h4 className="font-bold text-sm text-foreground">Helpful Reviewer</h4>
+              <p className="text-xs text-muted-foreground">Wrote helpful tips or directions for other visitors.</p>
             </div>
 
             {/* Badge 5 */}
             <div className={`p-5 rounded-2xl border ${tierLevel >= 3 ? 'border-primary/40 bg-primary/5' : 'border-border/60 bg-muted/20 opacity-60'} space-y-2`}>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">⚡</span>
+                <Sparkles className="h-6 w-6 text-primary" />
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tierLevel >= 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  {tierLevel >= 3 ? 'UNLOCKED' : 'LOCKED'}
+                  {tierLevel >= 3 ? 'Earned' : 'Locked'}
                 </span>
               </div>
-              <h4 className="font-bold text-sm text-foreground">High Pass Trailblazer</h4>
-              <p className="text-xs text-muted-foreground">Achieved Tier 3 ranking through consistent high-integrity contributions.</p>
+              <h4 className="font-bold text-sm text-foreground">Experienced Guide</h4>
+              <p className="text-xs text-muted-foreground">Reached Level 3 by sharing great spots with the community.</p>
             </div>
 
             {/* Badge 6 */}
             <div className={`p-5 rounded-2xl border ${tierLevel >= 5 ? 'border-primary/40 bg-primary/5' : 'border-border/60 bg-muted/20 opacity-60'} space-y-2`}>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">👑</span>
+                <Shield className="h-6 w-6 text-primary" />
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tierLevel >= 5 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
-                  {tierLevel >= 5 ? 'UNLOCKED' : 'LOCKED'}
+                  {tierLevel >= 5 ? 'Earned' : 'Locked'}
                 </span>
               </div>
-              <h4 className="font-bold text-sm text-foreground">Everest Legend</h4>
-              <p className="text-xs text-muted-foreground">Foremost contributor guiding the platform’s high-altitude directory.</p>
+              <h4 className="font-bold text-sm text-foreground">Nepal Legend</h4>
+              <p className="text-xs text-muted-foreground">One of our most active contributors helping travelers explore.</p>
             </div>
           </div>
         </div>
@@ -1184,18 +1187,18 @@ export function ProfileDashboard({
               <div>
                 <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  <span>Select Profile Emblem or Photo</span>
+                  <span>Choose Profile Photo</span>
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Upload an image from your device gallery to frame and adjust, or choose from our 10 handcrafted emblems.
+                  Upload a photo from your phone or computer, or pick one of our local avatars.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAvatarModalOpen(false)}
-                className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-lg font-bold"
               >
-                ✕
+                &times;
               </button>
             </div>
 
@@ -1241,7 +1244,7 @@ export function ProfileDashboard({
             {/* Option 2: 10 Handcrafted Explorer Emblems */}
             <div className="space-y-3">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                10 Explorer Emblems
+                Default Avatars
               </span>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -1261,7 +1264,7 @@ export function ProfileDashboard({
                     >
                       {isSelected && (
                         <div className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary text-white flex items-center justify-center text-[9px] shadow-xs">
-                          ✓
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
                         </div>
                       )}
 

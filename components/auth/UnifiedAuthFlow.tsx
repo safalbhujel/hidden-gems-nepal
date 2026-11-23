@@ -521,14 +521,14 @@ export function UnifiedAuthFlow({
             </Link>
 
             <div className="mb-2.5 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
-              <span>CURATED TRAILGUIDE</span>
+              <span>NEPAL TRAVEL GUIDE</span>
             </div>
 
             <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground font-serif leading-tight">
-              Welcome back, explorer
+              Welcome back
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
-              Sign in with your email and password to access your curated gems.
+              Sign in with your email and password to see your saved places.
             </p>
           </div>
 
@@ -724,14 +724,14 @@ export function UnifiedAuthFlow({
             </Link>
 
             <div className="mb-2.5 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
-              <span>EXPLORER REGISTRATION</span>
+              <span>CREATE AN ACCOUNT</span>
             </div>
 
             <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground font-serif leading-tight">
               Create your account
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
-              Set your handle and password, then verify your email with a 6-digit code.
+              Choose a username and password, then confirm your email with a 6-digit code.
             </p>
           </div>
 
@@ -830,7 +830,7 @@ export function UnifiedAuthFlow({
                 htmlFor="signup-handle-input"
                 className="text-xs font-semibold text-foreground/80"
               >
-                Explorer Handle (@username)
+                Username (@handle)
               </label>
               <div className="relative">
                 <AtSign className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -842,7 +842,7 @@ export function UnifiedAuthFlow({
                   autoCorrect="off"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                  placeholder="e.g. sherpa_traveler"
+                  placeholder="e.g. safal_travels"
                   disabled={isPending}
                   className="h-11 rounded-2xl border-border/80 bg-background/70 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
                 />
@@ -992,7 +992,7 @@ export function UnifiedAuthFlow({
               <span>Back</span>
             </button>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
-              Final Verification
+              Verification
             </span>
           </div>
 
@@ -1085,7 +1085,7 @@ export function UnifiedAuthFlow({
                 {codeCopied ? (
                   <>
                     <Check className="h-3.5 w-3.5" />
-                    <span>✓ Code copied</span>
+                    <span>Code copied</span>
                   </>
                 ) : (
                   <>
@@ -1172,7 +1172,7 @@ export function UnifiedAuthFlow({
                 </>
               ) : (
                 <>
-                  <span>Verify & Create Account</span>
+                  <span>Confirm & Finish</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}

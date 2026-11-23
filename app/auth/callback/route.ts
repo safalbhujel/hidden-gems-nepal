@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 /**
  * Supabase OAuth Callback Route Handler
  * Exchanges auth code for session tokens, checks for username existence,
- * and seamlessly forwards to /choose-username or the Home page.
+ * and forwards to /choose-username or /profile.
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);

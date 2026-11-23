@@ -9,9 +9,9 @@ import { Footer } from "@/components/layout/footer";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "HiddenGems Nepal | Discover the Nepal that everyone misses",
+  title: "HiddenGems Nepal | Discover the Nepal everyone misses",
   description:
-    "A community-powered platform to find underrated places, local food spots, and authentic experiences across all 77 districts of Nepal.",
+    "Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots across all 77 districts of Nepal. Shared by locals.",
   icons: {
     icon: "/icons/HiddenGemsNepal_Affinity.svg",
   },

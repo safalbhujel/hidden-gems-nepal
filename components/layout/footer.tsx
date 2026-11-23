@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 
 const EXPLORE_LINKS = [
-  { label: 'Interactive Map', href: '/explore' },
-  { label: 'Top Rated Gems', href: '/explore?sort=highest_rated' },
-  { label: 'Most Hidden Spots', href: '/explore?sort=most_hidden' },
+  { label: 'Map View', href: '/explore' },
+  { label: 'Top Rated Places', href: '/explore?sort=highest_rated' },
+  { label: 'Most Quiet Spots', href: '/explore?sort=most_hidden' },
   { label: 'Recently Added', href: '/explore?sort=newest' },
-  { label: 'Alpine & Waterfalls', href: '/explore?category=waterfall' },
-  { label: 'Sanctuaries & Viewpoints', href: '/explore?category=viewpoint' },
+  { label: 'Lakes & Waterfalls', href: '/explore?category=waterfall' },
+  { label: 'Temples & Viewpoints', href: '/explore?category=viewpoint' },
 ];
 
 const REGIONAL_LINKS = [
@@ -33,11 +33,11 @@ const REGIONAL_LINKS = [
 ];
 
 const COMMUNITY_LINKS = [
-  { label: 'Submit a Gem', href: '/submit' },
-  { label: 'Local Contributor Code', href: '/submit' },
-  { label: 'Moderation Protocol', href: '/explore' },
-  { label: 'Explorer Sign In', href: '/login' },
-  { label: 'Member Profile', href: '/profile' },
+  { label: 'Share a Place', href: '/submit' },
+  { label: 'Community Guidelines', href: '/submit' },
+  { label: 'How We Review', href: '/explore' },
+  { label: 'Sign In', href: '/login' },
+  { label: 'Your Profile', href: '/profile' },
 ];
 
 export function Footer() {
@@ -69,22 +69,22 @@ export function Footer() {
             </div>
 
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              The community-governed spatial trailguide for Nepal. Documenting
-              underrated trails, quiet sanctuaries, alpine lakes, and authentic
-              local heritage across all 77 districts.
+              Made by people who love exploring Nepal. We share peaceful
+              trails, mountain lakes, quiet spots, and great local food
+              across all 77 districts.
             </p>
 
-            {/* Spatial Status Badge */}
+            {/* Simple Status Badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
               <span className="font-medium text-foreground">
-                Spatial Network Active
+                Live Community Map
               </span>
               <span className="text-border">·</span>
-              <span>PostGIS 77 Districts</span>
+              <span>All 77 Districts</span>
             </div>
           </div>
 
@@ -146,20 +146,20 @@ export function Footer() {
               </ul>
             </div>
 
-            {/* Trail Dispatch Mini Subscription */}
+            {/* Friendly Travel Letter Subscription */}
             <div className="rounded-xl border border-border/80 bg-background/50 p-4">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
                 <Compass className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} />
-                <span>Trail Dispatch</span>
+                <span>Monthly Travel Notes</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Occasional hand-verified coordinates and seasonal passes.
+                A simple email once a month with newly found spots and travel tips.
               </p>
 
               {subscribed ? (
                 <div className="mt-3 flex items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-xs font-medium text-primary">
                   <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  <span>Subscribed to Trail Dispatch</span>
+                  <span>You are on the list! Thank you.</span>
                 </div>
               ) : (
                 <form onSubmit={handleSubscribe} className="mt-3 space-y-2">
@@ -168,7 +168,7 @@ export function Footer() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="guide@trail.np"
+                      placeholder="you@example.com"
                       className="h-8 text-xs bg-background"
                       required
                     />
@@ -181,7 +181,7 @@ export function Footer() {
                     </Button>
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    Zero spam. Only authentic coordinates.
+                    No spam ever. Unsubscribe anytime.
                   </p>
                 </form>
               )}
@@ -196,7 +196,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <span>© 2026 HiddenGems Nepal.</span>
             <span>·</span>
-            <span className="hidden sm:inline">Authentic community discovery.</span>
+            <span className="hidden sm:inline">Helping you find quiet spots across Nepal.</span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-5">
@@ -204,22 +204,22 @@ export function Footer() {
               href="/explore"
               className="transition-colors hover:text-foreground"
             >
-              Open Spatial Data
+              Explore Map
             </Link>
             <span>·</span>
             <Link
               href="/submit"
               className="transition-colors hover:text-foreground"
             >
-              Contributor Protocol
+              Guidelines
             </Link>
             <span>·</span>
             <a
-              href="mailto:trailguide@hiddengemsnepal.org"
+              href="mailto:hello@hiddengemsnepal.org"
               className="flex items-center gap-1 transition-colors hover:text-foreground"
             >
               <Mail className="h-3.5 w-3.5" strokeWidth={1.5} />
-              <span>Contact Dispatch</span>
+              <span>Contact Us</span>
             </a>
           </div>
 

@@ -323,7 +323,7 @@ export default function ForgotPasswordPage() {
                 Reset your password
               </h1>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
-                Enter your registered email address to receive a secure 6-digit recovery code.
+                Enter your email address to receive a 6-digit recovery code.
               </p>
             </div>
 
@@ -504,7 +504,7 @@ export default function ForgotPasswordPage() {
                   {codeCopied ? (
                     <>
                       <Check className="h-3.5 w-3.5" />
-                      <span>✓ Code copied</span>
+                      <span>Code copied</span>
                     </>
                   ) : (
                     <>

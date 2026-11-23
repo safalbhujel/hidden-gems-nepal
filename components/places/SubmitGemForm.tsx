@@ -290,16 +290,16 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
           <CheckCircle2 className="h-9 w-9" />
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Location Recorded for Review</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Thank you! Place submitted</h2>
         <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
-          Thank you for documenting this location. Our field team verifies the trail notes, coordinates, and media before publishing to the explore map.
+          Thank you for sharing this place. Our local team will check the details and publish it soon so other travelers can visit.
         </p>
         <div className="mt-6 flex gap-3">
           <Button onClick={() => router.push('/explore')} variant="default">
-            Explore Map Directory
+            Back to Explore
           </Button>
           <Button onClick={() => setIsSuccess(false)} variant="outline">
-            Submit Another Location
+            Share Another Place
           </Button>
         </div>
       </div>
@@ -318,7 +318,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
       {/* ── Section 1: Location Identity ─────────────────────────────────── */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
         <h3 className="text-lg font-bold flex items-center gap-2 text-foreground">
-          <span>1. Location Identity</span>
+          <span>1. Place Details</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -351,23 +351,23 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="why_special">What makes this location distinct? *</Label>
+          <Label htmlFor="why_special">What makes this place special? *</Label>
           <Input
             id="why_special"
             name="why_special"
             required
-            placeholder="e.g. Three-tiered glacial cascade surrounded by natural amphitheater rock walls."
+            placeholder="e.g. A quiet three-tier waterfall hidden inside the forest with fresh spring water."
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Detailed Description & Terrain *</Label>
+          <Label htmlFor="description">Description & How to get there *</Label>
           <textarea
             id="description"
             name="description"
             required
             rows={4}
-            placeholder="Detail the approach route, trail conditions, topography, and surrounding atmosphere…"
+            placeholder="Tell travelers how to reach this spot, what the path looks like, and what to expect when they get there…"
             className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
@@ -420,14 +420,14 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         <div>
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <span>3. Visual Documentation & Sources</span>
+              <span>3. Photos and Videos</span>
             </h3>
             <span className="text-xs text-muted-foreground font-medium">
-              {images.length} photos · {mediaSources.length} sources
+              {images.length} photos · {mediaSources.length} links
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Attach verified photographs, direct video footage, or creator links (Instagram Reels, TikTok, YouTube, X). Links provide direct attribution and redirect to the original creator.
+            Add your own photos, upload a video, or paste links from Instagram, TikTok, or YouTube to credit the creator.
           </p>
         </div>
 
@@ -563,8 +563,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Paste social media links (Instagram Reel, TikTok, YouTube Shorts, Facebook, X/Twitter) or upload a video file.
-            Visitors can click directly through to the original post to view creator footage and credit them.
+            Paste a link from Instagram, TikTok, or YouTube, or upload a video. Travelers can click through to see the original post and support the creator.
           </p>
 
           {/* Social Link Input Box */}
@@ -712,29 +711,29 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
         </div>
       </div>
 
-      {/* ── Section 4: Field Advisory & Logistics ─────────────────────────── */}
+      {/* ── Section 4: Travel Tips & Costs ─────────────────────────── */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-xs space-y-4">
-        <h3 className="text-lg font-bold text-foreground">4. Field Advisory & Logistics</h3>
+        <h3 className="text-lg font-bold text-foreground">4. Travel Tips & Costs</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="budget">Estimated Expense</Label>
-            <Input id="budget" name="budget" placeholder="e.g. Free, NPR 500 - 1000 local permits" />
+            <Label htmlFor="budget">Estimated Cost</Label>
+            <Input id="budget" name="budget" placeholder="e.g. Free, or NPR 300 for tea and snacks" />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="best_season">Recommended Season / Timing</Label>
-            <Input id="best_season" name="best_season" placeholder="e.g. Autumn / Spring, early morning ascent" />
+            <Label htmlFor="best_season">Best Time to Visit</Label>
+            <Input id="best_season" name="best_season" placeholder="e.g. October to April, early morning for clear views" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="travel_tips">Field Notes & Access Advisory</Label>
+          <Label htmlFor="travel_tips">Tips for Visitors</Label>
           <textarea
             id="travel_tips"
             name="travel_tips"
             rows={2}
-            placeholder="e.g. Rocky trail requires sturdy boots; dry riverbed crossing safe only before monsoon…"
+            placeholder="e.g. Wear good walking shoes. The trail gets slippery when it rains, so go early in the day…"
             className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
@@ -746,12 +745,12 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Registering Location…</span>
+              <span>Submitting place…</span>
             </>
           ) : (
             <>
               <Sparkles className="h-4 w-4" />
-              <span>Submit for Verification</span>
+              <span>Submit Place</span>
             </>
           )}
         </Button>

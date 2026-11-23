@@ -10,8 +10,7 @@ export default function PlaceNotFound() {
         <div className="space-y-2">
           <h1 className="text-3xl font-extrabold">Place not found</h1>
           <p className="text-muted-foreground">
-            This hidden gem doesn&apos;t exist or hasn&apos;t been approved yet. It might still
-            be under review — check back soon!
+            We could not find this place. It might still be under review, or the link may have changed.
           </p>
         </div>
         <Link href="/explore">

@@ -33,7 +33,7 @@ export function CopyOtp({ otp, onCopySuccess }: CopyOtpProps) {
       {copied ? (
         <>
           <Check className="h-3.5 w-3.5" />
-          <span>✓ Code copied!</span>
+          <span>Code copied!</span>
         </>
       ) : (
         <>

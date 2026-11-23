@@ -17,9 +17,9 @@ import type { SortOption, Category, District } from '@/lib/types/places'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const metadata = {
-  title: 'Explore Hidden Gems | HiddenGems Nepal',
+  title: 'Explore Places | HiddenGems Nepal',
   description:
-    'Search and discover underrated places, local food spots, secret viewpoints, and authentic experiences across all 77 districts of Nepal.',
+    'Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots across all 77 districts of Nepal.',
 }
 
 interface ExplorePageProps {
@@ -133,10 +133,10 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
       <div className="border-b bg-background py-10 md:py-14">
         <div className="container mx-auto max-w-7xl px-4">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
-            Explore Hidden Gems
+            Explore Places in Nepal
           </h1>
           <p className="text-muted-foreground text-base max-w-xl">
-            Discover underrated places, local food spots, and authentic experiences across Nepal.
+            Find quiet waterfalls, peaceful trails, and small local spots across all 77 districts.
           </p>
         </div>
       </div>

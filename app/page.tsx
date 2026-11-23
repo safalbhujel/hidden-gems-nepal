@@ -18,7 +18,7 @@ import { CategoryIcon } from '@/components/icons/CategoryIcon'
 export const metadata = {
   title: 'HiddenGems Nepal — Discover the Nepal Everyone Misses',
   description:
-    'Discover hidden waterfalls, local cafes, secret viewpoints, and authentic experiences across all 77 districts of Nepal — curated by people who actually live there.',
+    'Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots across all 77 districts of Nepal. Shared by locals who walk these trails every day.',
 }
 
 // Authentic Trailguide palette: border-accented chips, no coloured backgrounds.
@@ -102,8 +102,8 @@ export default async function HomePage() {
             <span className="text-primary">everyone misses.</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Hidden waterfalls, cozy local cafes, secret viewpoints, and authentic experiences
-            across all 77 districts — curated by people who actually live there.
+            Quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots
+            across all 77 districts. Shared by locals who walk these trails every day.
           </p>
 
           {/* Smart search bar */}
@@ -120,7 +120,7 @@ export default async function HomePage() {
       {/* ── 2. Categories ─────────────────────────────────────────────────── */}
       <section className="py-12 border-b">
         <div className="container mx-auto max-w-7xl px-4">
-          <h2 className="text-2xl font-bold mb-6">What&apos;s your vibe?</h2>
+          <h2 className="text-2xl font-bold mb-6">What kind of place are you looking for?</h2>
           <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x">
             {(categories.length > 0 ? categories : []).map((cat) => (
               <Link
@@ -146,9 +146,9 @@ export default async function HomePage() {
             <div>
               <h2 className="text-3xl font-bold flex items-center gap-2">
                 <Flame className="h-7 w-7 text-primary" aria-hidden="true" />
-                Before It Goes Viral
+                Before It Gets Crowded
               </h2>
-              <p className="text-muted-foreground mt-1">Highly rated spots still under the radar.</p>
+              <p className="text-muted-foreground mt-1">Great spots that most travelers have not found yet.</p>
             </div>
             <Link
               href="/explore"
@@ -225,10 +225,10 @@ export default async function HomePage() {
             />
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
-            Know a hidden spot?
+            Know a quiet spot near you?
           </h2>
           <p className="text-lg text-primary-foreground/80 max-w-xl mx-auto mb-8">
-            Share your favorite local cafes, secret trails, or underrated viewpoints with the community. Be the guide everyone needs.
+            Tell us about your favorite tea shop, peaceful trail, or sunset spot. Help other travelers find places they will love.
           </p>
           <Link href="/signup">
             {/*
@@ -240,7 +240,7 @@ export default async function HomePage() {
               size="lg"
               className="bg-background text-primary hover:bg-background/90 font-bold text-lg px-10 py-6 rounded-xl transition-colors"
             >
-              Start Contributing
+              Share a Place
             </Button>
           </Link>
         </div>

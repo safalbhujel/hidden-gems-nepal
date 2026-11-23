@@ -571,7 +571,7 @@ export function ExploreMap({
                   {!searchQuery.trim() ? (
                     <div className="p-3.5 space-y-3.5">
                       <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <span>Curated Discovery</span>
+                        <span>Local Spot</span>
                         <span className="text-[10px] font-normal lowercase">{places.length} gems mapped</span>
                       </div>
 

@@ -177,13 +177,13 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                 <Clock className="h-5 w-5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
                 <div className="space-y-1 text-xs sm:text-sm">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-foreground">Community Submission · Pending Verification</span>
+                    <span className="font-bold text-foreground">Community Submission · Under Review</span>
                     <span className="text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
-                      Under Field Review
+                      Checking Details
                     </span>
                   </div>
                   <p className="text-muted-foreground leading-relaxed text-xs">
-                    This destination was documented by an explorer and is visible across the platform while awaiting official verification and rating by local field stewards.
+                    A community member shared this spot. Our local team is checking the directions and info to make sure everything is accurate.
                   </p>
                 </div>
               </div>
@@ -200,13 +200,13 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                   {isApproved && (
                     <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 shadow-2xs">
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                      <span>Verified Hidden Gem · Official</span>
+                      <span>Verified Place</span>
                     </div>
                   )}
                   {isPending && (
                     <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 shadow-2xs">
                       <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
-                      <span>Community Contributed · Pending Verification</span>
+                      <span>Community Submission · Under Review</span>
                     </div>
                   )}
                 </div>
@@ -347,8 +347,8 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                 <div className="text-center space-y-3 text-muted-foreground">
                   <Map className="h-12 w-12 mx-auto opacity-40" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold">Interactive map coming in Phase 8</p>
-                    <p className="text-sm opacity-70">Mapbox integration with street view</p>
+                    <p className="font-semibold">Coordinates Saved</p>
+                    <p className="text-sm opacity-70">Use the directions link on the right to open Google Maps</p>
                   </div>
                 </div>
                 {place.districts && (

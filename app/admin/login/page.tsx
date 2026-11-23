@@ -128,7 +128,7 @@ export default function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
               ) : (
                 <span className="flex items-center gap-2">
                   <Lock className="h-4 w-4" />
-                  <span>Unlock Admin Console</span>
+                  <span>Log In as Admin</span>
                   <ArrowRight className="h-4 w-4 ml-auto" />
                 </span>
               )}

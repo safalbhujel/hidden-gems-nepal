@@ -5,9 +5,9 @@ import { SubmitGemForm } from '@/components/places/SubmitGemForm';
 import { Compass } from 'lucide-react';
 
 export const metadata = {
-  title: 'Submit a Hidden Gem | HiddenGems Nepal',
+  title: 'Share a Place | HiddenGems Nepal',
   description:
-    'Share an authentic, uncrowded place in Nepal with fellow explorers. Every submission is reviewed by our local community team.',
+    'Share a quiet, special place in Nepal with other travelers. Our local team reviews every spot before publishing.',
 };
 
 export default async function SubmitGemPage() {
@@ -33,14 +33,13 @@ export default async function SubmitGemPage() {
         <div className="container mx-auto max-w-4xl px-4">
           <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-wide uppercase mb-1">
             <Compass className="h-4 w-4" />
-            <span>Community Contribution</span>
+            <span>Add a New Place</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-            Share a Hidden Gem
+            Share a Place
           </h1>
           <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-xl">
-            Help fellow travelers discover the real Nepal. Drop a pin on the map, describe the vibe,
-            and share insider tips.
+            Help other travelers find quiet spots across Nepal. Pick a spot on the map, tell us what makes it special, and share tips for getting there.
           </p>
         </div>
       </div>

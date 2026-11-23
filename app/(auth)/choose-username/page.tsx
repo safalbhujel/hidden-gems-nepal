@@ -148,14 +148,14 @@ function ChooseUsernameForm() {
         </Link>
 
         <div className="mb-2 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
-          <span>Identity Setup</span>
+          <span>Your Account</span>
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Claim Your Handle
+          Choose your username
         </h1>
         <p className="mt-1.5 text-xs text-muted-foreground sm:text-sm">
-          Choose a unique handle for your discoveries, reviews, and community trails.
+          Pick a username for your profile and reviews.
         </p>
       </div>
 
@@ -174,7 +174,7 @@ function ChooseUsernameForm() {
             htmlFor="username-input"
             className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
           >
-            Explorer Username
+            Username
           </label>
           <div className="relative flex items-center">
             <span className="pointer-events-none absolute left-4 text-sm font-bold text-muted-foreground">
@@ -206,7 +206,7 @@ function ChooseUsernameForm() {
         {/* ── Handle Preview Card ─────────────────────────────────────────── */}
         <div className="rounded-2xl border border-border/80 bg-muted/40 p-3.5 text-left">
           <p className="text-[11px] font-medium text-muted-foreground">
-            Your community identity:
+            Your profile link:
           </p>
           <p className="mt-0.5 text-sm font-bold text-foreground">
             hiddengems.np/@
@@ -222,11 +222,11 @@ function ChooseUsernameForm() {
           {isSubmitting ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Setting your handle...</span>
+              <span>Saving username...</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              <span>Complete & Start Exploring</span>
+              <span>Save and Continue</span>
               <ArrowRight className="h-4 w-4" />
             </div>
           )}

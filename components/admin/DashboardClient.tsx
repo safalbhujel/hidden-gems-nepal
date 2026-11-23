@@ -111,7 +111,7 @@ export function DashboardClient({ stats }: DashboardClientProps) {
     {
       label: 'Featured Spotlight',
       value: `${stats.featuredGems}/10`,
-      trend: 'Curated active',
+      trend: 'Active spots',
       trendPositive: true,
       icon: Star,
       color: 'text-amber-500',

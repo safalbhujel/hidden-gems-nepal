@@ -97,7 +97,6 @@ export async function saveUsername(formData: FormData) {
   }
 
   const rawUsername = formData.get('username') as string | null;
-  const next = (formData.get('next') as string | null) || '/';
 
   if (!rawUsername) {
     return { error: 'Please enter a username.' };

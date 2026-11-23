@@ -14,7 +14,7 @@ import { logout } from '@/app/(auth)/actions';
 const navLinks = [
   { href: '/', label: 'Home', icon: Mountain },
   { href: '/explore', label: 'Explore', icon: Compass },
-  { href: '/submit', label: 'Submit Gem', icon: Gem },
+  { href: '/submit', label: 'Share a Place', icon: Gem },
 ];
 
 export function Navbar() {
@@ -207,7 +207,7 @@ export function Navbar() {
               <Link
                 href="/profile"
                 className="group flex items-center gap-2 rounded-full border border-border/80 bg-background/80 py-1 pl-1 pr-3 text-xs font-semibold hover:border-primary transition-all shadow-xs"
-                title="View Explorer Profile"
+                title="View Profile"
               >
                 <div className="relative h-6 w-6 overflow-hidden rounded-full ring-1.5 ring-primary/40 group-hover:ring-primary transition-all bg-muted shrink-0">
                   <Image
@@ -296,7 +296,7 @@ export function Navbar() {
                 href="/submit"
                 className="flex items-center gap-3 text-lg font-semibold hover:text-primary transition-colors"
               >
-                <Gem className="h-5 w-5 text-primary" /> Submit Gem
+                <Gem className="h-5 w-5 text-primary" /> Share a Place
               </Link>
               <div className="h-px bg-border" />
 

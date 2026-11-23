@@ -34,7 +34,7 @@ export function CategoriesClient({ initialCategories }: CategoriesClientProps) {
       id: `cat-${Date.now()}`,
       name,
       slug,
-      description: description || 'Curated adventure classification',
+      description: description || 'Category for places in Nepal',
       icon: null,
       is_active: true,
       place_count: 0,
