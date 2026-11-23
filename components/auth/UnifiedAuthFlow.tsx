@@ -15,20 +15,40 @@ import {
   EyeOff,
   Lock,
   Clipboard,
+  AtSign,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GoogleIcon } from '@/components/icons/GoogleIcon';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { sendOtpAction, verifyOtpAction, login } from '@/app/(auth)/actions';
+import {
+  login,
+  sendOtpAction,
+  verifyOtpAction,
+  sendSignupOtpAction,
+  verifySignupOtpAction,
+  completeSignupAction,
+} from '@/app/(auth)/actions';
 import { CopyOtp } from '@/components/auth/CopyOtp';
 
-export type AuthFlowView = 'entry' | 'otp' | 'password';
+export type AuthMode = 'login' | 'signup';
+
+export type AuthFlowView =
+  | 'login-credentials'
+  | 'login-otp-request'
+  | 'login-otp-verify'
+  | 'signup-email'
+  | 'signup-otp'
+  | 'signup-password'
+  | 'entry'
+  | 'otp'
+  | 'password';
 
 interface UnifiedAuthFlowProps {
   initialView?: AuthFlowView;
   initialEmail?: string;
-  defaultMode?: 'login' | 'signup';
+  defaultMode?: AuthMode;
 }
 
 function formatCooldown(seconds: number): string {
@@ -38,19 +58,44 @@ function formatCooldown(seconds: number): string {
 }
 
 export function UnifiedAuthFlow({
-  initialView = 'entry',
+  initialView,
   initialEmail = '',
+  defaultMode = 'login',
 }: UnifiedAuthFlowProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectedFrom = searchParams.get('redirectedFrom') || '/';
   const urlError = searchParams.get('error');
 
-  // Progressive view state
-  const [view, setView] = useState<AuthFlowView>(initialView);
+  // Active Mode: 'login' (Sign In) vs 'signup' (Sign Up)
+  const [mode, setMode] = useState<AuthMode>(defaultMode);
+
+  // Active View calculation
+  const computeInitialView = (): AuthFlowView => {
+    if (initialView) {
+      if (initialView === 'entry') {
+        return defaultMode === 'signup' ? 'signup-email' : 'login-credentials';
+      }
+      if (initialView === 'otp') {
+        return defaultMode === 'signup' ? 'signup-otp' : 'login-otp-verify';
+      }
+      if (initialView === 'password') {
+        return 'login-credentials';
+      }
+      return initialView;
+    }
+    return defaultMode === 'signup' ? 'signup-email' : 'login-credentials';
+  };
+
+  const [view, setView] = useState<AuthFlowView>(computeInitialView);
+
+  // Form Fields State
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 6-digit OTP segmented state
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
@@ -60,15 +105,18 @@ export function UnifiedAuthFlow({
   const [isPending, startTransition] = useTransition();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(urlError);
-  const [notificationMsg, setNotificationMsg] = useState<{ type: 'success' | 'info'; text: string } | null>(null);
+  const [notificationMsg, setNotificationMsg] = useState<{
+    type: 'success' | 'info';
+    text: string;
+  } | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Auto-dismiss notification after 4 seconds
+  // Auto-dismiss notification after 4.5 seconds
   useEffect(() => {
     if (!notificationMsg) return;
     const timer = setTimeout(() => {
       setNotificationMsg(null);
-    }, 4000);
+    }, 4500);
     return () => clearTimeout(timer);
   }, [notificationMsg]);
 
@@ -81,9 +129,9 @@ export function UnifiedAuthFlow({
     return () => clearInterval(timer);
   }, [resendCooldown]);
 
-  // Focus the first empty digit box when switching to OTP view
+  // Focus the first empty digit box when switching to any OTP view
   useEffect(() => {
-    if (view === 'otp') {
+    if (view === 'signup-otp' || view === 'login-otp-verify' || view === 'otp') {
       const firstEmpty = digits.findIndex((d) => !d);
       const targetIdx = firstEmpty === -1 ? 0 : firstEmpty;
       const timeout = setTimeout(() => {
@@ -93,6 +141,24 @@ export function UnifiedAuthFlow({
       return () => clearTimeout(timeout);
     }
   }, [view, digits]);
+
+  // Switch between Sign In and Sign Up modes cleanly
+  const switchMode = (newMode: AuthMode) => {
+    setErrorMsg(null);
+    setNotificationMsg(null);
+    setMode(newMode);
+    if (newMode === 'login') {
+      setView('login-credentials');
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/login');
+      }
+    } else {
+      setView('signup-email');
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/signup');
+      }
+    }
+  };
 
   // ── 1. Google OAuth Authentication ─────────────────────────────────────────
   const handleGoogleSignIn = async () => {
@@ -125,8 +191,30 @@ export function UnifiedAuthFlow({
     }
   };
 
-  // ── 2. Screen 1: Send 6-Digit Email OTP ────────────────────────────────────
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  // ── 2. Sign In: Direct Email + Password Login ──────────────────────────────
+  const handlePasswordLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sanitizedEmail = email.trim().toLowerCase();
+    if (!sanitizedEmail || !password || isPending) return;
+    setErrorMsg(null);
+
+    const formData = new FormData();
+    formData.append('email', sanitizedEmail);
+    formData.append('password', password);
+    formData.append('redirectedFrom', redirectedFrom);
+
+    startTransition(async () => {
+      const res = await login(formData);
+      if (res?.error) {
+        setErrorMsg(res.error);
+      } else {
+        router.refresh();
+      }
+    });
+  };
+
+  // ── 3. Sign In: Fallback Request 6-Digit Login OTP ──────────────────────────
+  const handleLoginOtpRequestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const sanitizedEmail = email.trim().toLowerCase();
     if (!sanitizedEmail || isPending) return;
@@ -141,7 +229,7 @@ export function UnifiedAuthFlow({
         if (res.error) {
           setErrorMsg(res.error);
         } else {
-          setView('otp');
+          setView('login-otp-verify');
           setResendCooldown(60);
           setDigits(['', '', '', '', '', '']);
           setNotificationMsg({
@@ -155,7 +243,37 @@ export function UnifiedAuthFlow({
     });
   };
 
-  // ── 3. Screen 2: OTP Digit Micro-Interactions ───────────────────────────────
+  // ── 4. Sign Up: Step 1 Submit Email (Enforce 1 Account & Block Burners) ─────
+  const handleSignupEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const sanitizedEmail = email.trim().toLowerCase();
+    if (!sanitizedEmail || isPending) return;
+    setErrorMsg(null);
+
+    const formData = new FormData();
+    formData.append('email', sanitizedEmail);
+
+    startTransition(async () => {
+      try {
+        const res = await sendSignupOtpAction(formData);
+        if (res.error) {
+          setErrorMsg(res.error);
+        } else {
+          setView('signup-otp');
+          setResendCooldown(60);
+          setDigits(['', '', '', '', '', '']);
+          setNotificationMsg({
+            type: 'success',
+            text: 'Verification code sent. Check your inbox.',
+          });
+        }
+      } catch {
+        setErrorMsg("We couldn't connect. Check your internet and try again.");
+      }
+    });
+  };
+
+  // ── 5. OTP Digit Micro-Interactions (Used in both Sign Up & Sign In OTP) ────
   const handleDigitChange = (index: number, val: string) => {
     if (errorMsg) setErrorMsg(null);
     const clean = val.replace(/\D/g, '');
@@ -227,7 +345,7 @@ export function UnifiedAuthFlow({
     }
   };
 
-  // ── 4. Verify OTP Code ─────────────────────────────────────────────────────
+  // ── 6. Submit OTP Code (Branches for Sign Up vs Sign In) ───────────────────
   const submitOtpCode = (code: string) => {
     if (code.length !== 6 || isPending) return;
     setErrorMsg(null);
@@ -239,15 +357,30 @@ export function UnifiedAuthFlow({
 
     startTransition(async () => {
       try {
-        const res = await verifyOtpAction(formData);
-        if (res?.error) {
-          setErrorMsg(res.error);
+        if (view === 'signup-otp') {
+          // Verify signup OTP and advance to Step 3: Set Password & Username
+          const res = await verifySignupOtpAction(formData);
+          if (res?.error) {
+            setErrorMsg(res.error);
+          } else {
+            setNotificationMsg({
+              type: 'success',
+              text: 'Email verified. Please secure your account.',
+            });
+            setView('signup-password');
+          }
         } else {
-          setNotificationMsg({
-            type: 'success',
-            text: 'Email verified. Welcome to HiddenGems Nepal!',
-          });
-          router.refresh();
+          // Direct login OTP verification
+          const res = await verifyOtpAction(formData);
+          if (res?.error) {
+            setErrorMsg(res.error);
+          } else {
+            setNotificationMsg({
+              type: 'success',
+              text: 'Email verified. Welcome to HiddenGems Nepal!',
+            });
+            router.refresh();
+          }
         }
       } catch {
         setErrorMsg("We couldn't connect. Check your internet and try again.");
@@ -311,7 +444,11 @@ export function UnifiedAuthFlow({
 
     startTransition(async () => {
       try {
-        const res = await sendOtpAction(formData);
+        const res =
+          view === 'signup-otp'
+            ? await sendSignupOtpAction(formData)
+            : await sendOtpAction(formData);
+
         if (res.error) {
           setErrorMsg(res.error);
         } else {
@@ -327,36 +464,63 @@ export function UnifiedAuthFlow({
     });
   };
 
-  // ── 5. Screen 3: Password Fallback Submission ──────────────────────────────
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  // ── 7. Sign Up: Step 3 Complete Registration (Password + Unique @Handle) ────
+  const handleCompleteSignupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password || isPending) return;
+    if (!password || !confirmPassword || !username || isPending) return;
     setErrorMsg(null);
 
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match.');
+      return;
+    }
+
+    const cleanHandle = username.trim().toLowerCase().replace(/^@/, '');
+    if (!/^[a-z0-9_]{3,20}$/.test(cleanHandle)) {
+      setErrorMsg(
+        'Username must be 3-20 characters long and contain only lowercase letters, numbers, and underscores (_).'
+      );
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('email', email.trim().toLowerCase());
     formData.append('password', password);
+    formData.append('confirmPassword', confirmPassword);
+    formData.append('username', cleanHandle);
     formData.append('redirectedFrom', redirectedFrom);
 
     startTransition(async () => {
-      const res = await login(formData);
-      if (res?.error) {
-        setErrorMsg(res.error);
-      } else {
-        router.refresh();
+      try {
+        const res = await completeSignupAction(formData);
+        if (res?.error) {
+          setErrorMsg(res.error);
+        } else {
+          router.refresh();
+        }
+      } catch {
+        setErrorMsg("We couldn't connect. Check your internet and try again.");
       }
     });
   };
 
   return (
-    <div className="relative w-full max-w-[420px] sm:max-w-[440px] rounded-3xl border border-border/80 bg-card/95 p-7 sm:p-9 shadow-2xl shadow-black/[0.04] backdrop-blur-xl transition-all duration-300 dark:border-white/10 dark:bg-card/90 dark:shadow-black/40">
+    <div
+      role="region"
+      aria-label={mode === 'signup' ? 'Explorer Sign Up' : 'Explorer Sign In'}
+      className="relative w-full max-w-[420px] sm:max-w-[450px] rounded-3xl border border-border/80 bg-card/95 p-7 sm:p-9 shadow-2xl shadow-black/[0.04] backdrop-blur-xl transition-all duration-300 dark:border-white/10 dark:bg-card/90 dark:shadow-black/40"
+    >
       {/* Top subtle golden shimmer line */}
       <div className="absolute inset-x-8 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FF8500]/50 to-transparent" />
 
       {/* ════════════════════════════════════════════════════════════════════════
-         SCREEN 1 — ENTRY / EMAIL VIEW (Left Side of Reference Image 1)
+         VIEW 1: SIGN IN — DIRECT EMAIL + PASSWORD (Instant 1-Step Login)
          ════════════════════════════════════════════════════════════════════════ */}
-      {view === 'entry' && (
+      {view === 'login-credentials' && (
         <div className="animate-in fade-in-50 duration-200">
           {/* Brand Header & Logo */}
           <div className="flex flex-col items-center text-center">
@@ -388,10 +552,10 @@ export function UnifiedAuthFlow({
             </div>
 
             <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground font-serif leading-tight">
-              Discover Nepal’s unseen trails
+              Welcome back, explorer
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[310px] mx-auto leading-relaxed">
-              Sign in or create an account to save trails and share local gems.
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
+              Sign in with your email and password to access your curated gems.
             </p>
           </div>
 
@@ -437,15 +601,15 @@ export function UnifiedAuthFlow({
               <div className="w-full border-t border-border/70" />
             </div>
             <span className="relative bg-card px-3 text-[11px] font-medium text-muted-foreground/85">
-              or continue with email
+              or sign in with password
             </span>
           </div>
 
-          {/* Email Input Form */}
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
+          {/* Email + Password Form */}
+          <form onSubmit={handlePasswordLoginSubmit} className="space-y-4">
             <div className="space-y-1.5 text-left">
               <label
-                htmlFor="auth-email-input"
+                htmlFor="login-email-input"
                 className="text-xs font-semibold text-foreground/80"
               >
                 Email address
@@ -453,7 +617,213 @@ export function UnifiedAuthFlow({
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="auth-email-input"
+                  id="login-email-input"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  disabled={isPending}
+                  className="h-12 rounded-2xl border-border/80 bg-background/70 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 text-left">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="login-password-input"
+                  className="text-xs font-semibold text-foreground/80"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-foreground/75 hover:text-primary transition-colors"
+                >
+                  <span>Forgot password?</span>
+                  <Lock className="h-3 w-3 text-muted-foreground" />
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="login-password-input"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isPending}
+                  className="h-12 rounded-2xl border-border/80 bg-background/70 pl-4 pr-11 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-foreground transition-colors cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isPending || !email.trim() || !password}
+              className="mt-2 h-12 w-full cursor-pointer rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 gap-1.5"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          {/* Secondary fallback link to 6-digit OTP code */}
+          <div className="mt-5 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMsg(null);
+                setView('login-otp-request');
+              }}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              Sign in with a 6-digit email code instead
+            </button>
+          </div>
+
+          {/* Mode Switcher Footer */}
+          <div className="mt-7 border-t border-border/70 pt-5 text-center">
+            <p className="text-xs text-muted-foreground">
+              New to HiddenGems Nepal?{' '}
+              <button
+                type="button"
+                onClick={() => switchMode('signup')}
+                className="font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Create an account →
+              </button>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+         VIEW 2: SIGN UP — STEP 1: ENTER EMAIL (Blocks Burners, Checks 1-Account)
+         ════════════════════════════════════════════════════════════════════════ */}
+      {view === 'signup-email' && (
+        <div className="animate-in fade-in-50 duration-200">
+          {/* Brand Header & Logo */}
+          <div className="flex flex-col items-center text-center">
+            <Link
+              href="/"
+              className="group mb-4 inline-flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+              aria-label="HiddenGems Nepal home"
+            >
+              <Image
+                src="/icons/HiddenGemsNepal_Affinity.svg"
+                alt="HiddenGems Nepal"
+                width={160}
+                height={120}
+                priority
+                className="h-14 w-auto object-contain drop-shadow-xs dark:hidden"
+              />
+              <Image
+                src="/icons/HiddenGemsNepal_Affinityy.svg"
+                alt="HiddenGems Nepal"
+                width={160}
+                height={120}
+                priority
+                className="hidden h-14 w-auto object-contain drop-shadow-xs dark:block"
+              />
+            </Link>
+
+            <div className="mb-2.5 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
+              <span>CURATED TRAILGUIDE</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground font-serif leading-tight">
+              Discover Nepal’s unseen trails
+            </h1>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
+              Create an account to save trails, bookmark gems, and connect with explorers.
+            </p>
+          </div>
+
+          {/* Success / Info Notification Banner */}
+          {notificationMsg && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in-50 duration-200">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed font-medium">{notificationMsg.text}</span>
+            </div>
+          )}
+
+          {/* Error Banner */}
+          {errorMsg && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-destructive/20 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in-50">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed font-medium">{errorMsg}</span>
+            </div>
+          )}
+
+          {/* Social Sign In (Google OAuth) */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isPending || isGoogleLoading}
+            className="mt-6 flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl border border-border/80 bg-background/80 px-4 text-sm font-semibold text-foreground shadow-xs transition-all duration-200 hover:border-border hover:bg-muted/60 active:scale-[0.99] disabled:opacity-60"
+          >
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span>Connecting to Google...</span>
+              </>
+            ) : (
+              <>
+                <GoogleIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                <span>Sign up with Google</span>
+              </>
+            )}
+          </button>
+
+          {/* Hairline Divider */}
+          <div className="relative my-6 text-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border/70" />
+            </div>
+            <span className="relative bg-card px-3 text-[11px] font-medium text-muted-foreground/85">
+              or register with email
+            </span>
+          </div>
+
+          {/* Email Input Form */}
+          <form onSubmit={handleSignupEmailSubmit} className="space-y-4">
+            <div className="space-y-1.5 text-left">
+              <label
+                htmlFor="signup-email-input"
+                className="text-xs font-semibold text-foreground/80"
+              >
+                Email address
+              </label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="signup-email-input"
                   type="email"
                   required
                   autoComplete="email"
@@ -485,40 +855,45 @@ export function UnifiedAuthFlow({
             </Button>
           </form>
 
-          {/* Subtle text link at bottom */}
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setErrorMsg(null);
-                setView('password');
-              }}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              Sign in with password instead
-            </button>
+          {/* Mode Switcher Footer */}
+          <div className="mt-7 border-t border-border/70 pt-5 text-center">
+            <p className="text-xs text-muted-foreground">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className="font-semibold text-primary hover:underline cursor-pointer"
+              >
+                Sign in →
+              </button>
+            </p>
           </div>
         </div>
       )}
 
       {/* ════════════════════════════════════════════════════════════════════════
-         SCREEN 2 — 6-DIGIT OTP VERIFICATION VIEW (Right Side of Image 1)
+         VIEW 3: OTP VERIFICATION (Used for Sign Up Step 2 & Sign In OTP)
          ════════════════════════════════════════════════════════════════════════ */}
-      {view === 'otp' && (
+      {(view === 'signup-otp' || view === 'login-otp-verify' || view === 'otp') && (
         <div className="animate-in fade-in-50 duration-200">
           {/* Top-left Back button */}
-          <div className="flex items-center justify-start mb-2">
+          <div className="flex items-center justify-between mb-2">
             <button
               type="button"
               onClick={() => {
                 setErrorMsg(null);
-                setView('entry');
+                setView(view === 'signup-otp' ? 'signup-email' : 'login-credentials');
               }}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-1"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back</span>
             </button>
+            {view === 'signup-otp' && (
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                Step 2 of 3
+              </span>
+            )}
           </div>
 
           {/* Brand Header & Logo */}
@@ -557,7 +932,7 @@ export function UnifiedAuthFlow({
                 type="button"
                 onClick={() => {
                   setErrorMsg(null);
-                  setView('entry');
+                  setView(view === 'signup-otp' ? 'signup-email' : 'login-credentials');
                 }}
                 className="font-semibold text-primary hover:underline ml-1 cursor-pointer"
               >
@@ -672,7 +1047,9 @@ export function UnifiedAuthFlow({
                 </>
               ) : (
                 <>
-                  <span>Verify & Continue</span>
+                  <span>
+                    {view === 'signup-otp' ? 'Verify & Continue' : 'Verify & Sign In'}
+                  </span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -709,26 +1086,23 @@ export function UnifiedAuthFlow({
       )}
 
       {/* ════════════════════════════════════════════════════════════════════════
-         SCREEN 3 — PASSWORD FALLBACK VIEW (Reference Image 2)
+         VIEW 4: SIGN UP — STEP 3: SET PASSWORD & UNIQUE @HANDLE
+         Next time they log in, they simply use Email & Password!
          ════════════════════════════════════════════════════════════════════════ */}
-      {view === 'password' && (
+      {view === 'signup-password' && (
         <div className="animate-in fade-in-50 duration-200">
-          {/* Top-left Back button */}
-          <div className="flex items-center justify-start mb-2">
-            <button
-              type="button"
-              onClick={() => {
-                setErrorMsg(null);
-                setView('entry');
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
-            </button>
+          {/* Header with Step Indicator */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Email Verified</span>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+              Final Step
+            </span>
           </div>
 
-          {/* Brand Header & Logo */}
+          {/* Brand Header */}
           <div className="flex flex-col items-center text-center">
             <Link
               href="/"
@@ -753,15 +1127,11 @@ export function UnifiedAuthFlow({
               />
             </Link>
 
-            <div className="mb-2.5 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
-              <span>CURATED TRAILGUIDE</span>
-            </div>
-
             <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground font-serif leading-tight">
-              Welcome back, explorer
+              Secure your account
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[310px] mx-auto leading-relaxed">
-              Please enter your password to access your curated gems.
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
+              Create your unique explorer handle and password. Next time you sign in, you&apos;ll simply use your password.
             </p>
           </div>
 
@@ -781,67 +1151,70 @@ export function UnifiedAuthFlow({
             </div>
           )}
 
-          {/* Form Inputs */}
-          <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-4">
-            {/* Read-only / Pre-filled Email field with inline Edit button */}
+          {/* Registration Completion Form */}
+          <form onSubmit={handleCompleteSignupSubmit} className="mt-6 space-y-4">
+            {/* Pre-filled verified email */}
             <div className="space-y-1.5 text-left">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password-email-field"
-                  className="text-xs font-semibold text-foreground/80"
-                >
-                  Email address
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setErrorMsg(null);
-                    setView('entry');
-                  }}
-                  className="text-xs font-semibold text-primary hover:underline cursor-pointer"
-                >
-                  Edit
-                </button>
-              </div>
+              <label className="text-xs font-semibold text-foreground/80 flex items-center justify-between">
+                <span>Email address</span>
+                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  ✓ Verified
+                </span>
+              </label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="password-email-field"
                   type="email"
-                  required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  disabled={isPending}
-                  className="h-12 rounded-2xl border-border/80 bg-muted/40 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+                  disabled
+                  className="h-12 rounded-2xl border-border/80 bg-muted/40 pl-10 pr-4 text-sm text-foreground/80 cursor-not-allowed"
                 />
               </div>
             </div>
 
-            {/* Password input with show/hide toggle and Forgot password link */}
+            {/* Unique Explorer Handle (@username) */}
             <div className="space-y-1.5 text-left">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="auth-password-input"
-                  className="text-xs font-semibold text-foreground/80"
-                >
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-foreground/75 hover:text-primary transition-colors"
-                >
-                  <span>Forgot password?</span>
-                  <Lock className="h-3 w-3 text-muted-foreground" />
-                </Link>
+              <label
+                htmlFor="signup-handle-input"
+                className="text-xs font-semibold text-foreground/80"
+              >
+                Explorer Handle (@username)
+              </label>
+              <div className="relative">
+                <AtSign className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="signup-handle-input"
+                  type="text"
+                  required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                  placeholder="e.g. sherpa_traveler"
+                  disabled={isPending}
+                  className="h-12 rounded-2xl border-border/80 bg-background/70 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+                />
               </div>
+              <p className="text-[11px] text-muted-foreground/75">
+                3–20 characters, lowercase letters, numbers, and underscores (_).
+              </p>
+            </div>
+
+            {/* New Password */}
+            <div className="space-y-1.5 text-left">
+              <label
+                htmlFor="signup-password-input"
+                className="text-xs font-semibold text-foreground/80"
+              >
+                Create Password
+              </label>
               <div className="relative">
                 <Input
-                  id="auth-password-input"
+                  id="signup-password-input"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  autoComplete="current-password"
-                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isPending}
@@ -863,36 +1236,178 @@ export function UnifiedAuthFlow({
               </div>
             </div>
 
+            {/* Confirm Password */}
+            <div className="space-y-1.5 text-left">
+              <label
+                htmlFor="signup-confirm-password-input"
+                className="text-xs font-semibold text-foreground/80"
+              >
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Input
+                  id="signup-confirm-password-input"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="new-password"
+                  placeholder="Re-enter your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isPending}
+                  className="h-12 rounded-2xl border-border/80 bg-background/70 pl-4 pr-11 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  tabIndex={-1}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-foreground transition-colors cursor-pointer"
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
             <Button
               type="submit"
-              disabled={isPending || !password}
+              disabled={isPending || !password || !confirmPassword || !username.trim()}
               className="mt-2 h-12 w-full cursor-pointer rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 gap-1.5"
             >
               {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Signing in...</span>
+                  <span>Completing registration...</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Complete Registration</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </form>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+         VIEW 5: SIGN IN — FALLBACK REQUEST OTP VIEW
+         ════════════════════════════════════════════════════════════════════════ */}
+      {view === 'login-otp-request' && (
+        <div className="animate-in fade-in-50 duration-200">
+          {/* Top-left Back button */}
+          <div className="flex items-center justify-start mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMsg(null);
+                setView('login-credentials');
+              }}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer py-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back</span>
+            </button>
+          </div>
+
+          {/* Brand Header */}
+          <div className="flex flex-col items-center text-center">
+            <Link
+              href="/"
+              className="group mb-4 inline-flex items-center justify-center transition-transform duration-200 hover:scale-105 active:scale-95"
+              aria-label="HiddenGems Nepal home"
+            >
+              <Image
+                src="/icons/HiddenGemsNepal_Affinity.svg"
+                alt="HiddenGems Nepal"
+                width={160}
+                height={120}
+                priority
+                className="h-14 w-auto object-contain drop-shadow-xs dark:hidden"
+              />
+              <Image
+                src="/icons/HiddenGemsNepal_Affinityy.svg"
+                alt="HiddenGems Nepal"
+                width={160}
+                height={120}
+                priority
+                className="hidden h-14 w-auto object-contain drop-shadow-xs dark:block"
+              />
+            </Link>
+
+            <h1 className="text-2xl sm:text-[28px] font-bold tracking-tight text-foreground font-serif leading-tight">
+              Sign in with email code
+            </h1>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-[320px] mx-auto leading-relaxed">
+              We&apos;ll send a one-time 6-digit verification code to your email.
+            </p>
+          </div>
+
+          {/* Error Banner */}
+          {errorMsg && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-destructive/20 bg-destructive/10 p-3.5 text-xs text-destructive animate-in fade-in-50">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed font-medium">{errorMsg}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLoginOtpRequestSubmit} className="mt-6 space-y-4">
+            <div className="space-y-1.5 text-left">
+              <label
+                htmlFor="login-otp-email"
+                className="text-xs font-semibold text-foreground/80"
+              >
+                Email address
+              </label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="login-otp-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  disabled={isPending}
+                  className="h-12 rounded-2xl border-border/80 bg-background/70 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-primary focus:ring-4 focus:ring-primary/15"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isPending || !email.trim()}
+              className="mt-2 h-12 w-full cursor-pointer rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 gap-1.5"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Sending code...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send Code</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
           </form>
 
-          {/* Bottom link to switch back to OTP code */}
-          <div className="mt-8 text-center">
+          {/* Switch back to Password */}
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={() => {
                 setErrorMsg(null);
-                setView('entry');
+                setView('login-credentials');
               }}
               className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              Use a 6-digit email code instead
+              Sign in with password instead
             </button>
           </div>
         </div>
@@ -900,3 +1415,5 @@ export function UnifiedAuthFlow({
     </div>
   );
 }
+
+export default UnifiedAuthFlow;

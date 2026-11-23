@@ -1,6 +1,7 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { validateEmailDomain } from '@/lib/utils/block-burner-emails';
 
@@ -236,6 +237,190 @@ export async function sendOtpAction(formData: FormData): Promise<AuthActionResul
   }
 
   return { success: true, email: validation.sanitizedEmail };
+}
+
+/**
+ * 7b. Send Signup OTP Action: Enforces unique email (one account per email),
+ * blocks disposable burner domains, and requests a 6-digit OTP from Supabase.
+ */
+export async function sendSignupOtpAction(formData: FormData): Promise<AuthActionResult> {
+  const rawEmail = formData.get('email')?.toString();
+  const validation = validateEmailDomain(rawEmail || '');
+
+  if (!validation.isValid || !validation.sanitizedEmail) {
+    return { error: validation.error || 'Please enter a valid email address.' };
+  }
+
+  const sanitizedEmail = validation.sanitizedEmail;
+
+  // Enforce one account per email
+  try {
+    const admin = createSupabaseAdminClient();
+    const { data: existingProfile } = await admin
+      .from('profiles')
+      .select('id')
+      .ilike('email', sanitizedEmail)
+      .maybeSingle();
+
+    if (existingProfile) {
+      return {
+        error: 'An account with this email already exists. Please sign in instead.',
+      };
+    }
+  } catch (err) {
+    console.warn('[sendSignupOtpAction] Profile check warning:', err);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: sanitizedEmail,
+    options: {
+      shouldCreateUser: true,
+    },
+  });
+
+  if (error) {
+    console.error('[sendSignupOtpAction] Supabase error:', error.message);
+    const msg = error.message.toLowerCase();
+    if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+      return { error: 'Please wait before requesting another code.' };
+    }
+    if (msg.includes('error sending')) {
+      return { error: 'Unable to deliver verification email. Please verify your email address or check your SMTP settings.' };
+    }
+    return { error: error.message };
+  }
+
+  return { success: true, email: sanitizedEmail };
+}
+
+/**
+ * 8b. Verify Signup OTP Action: Validates the 6-digit token and establishes
+ * an authenticated session, but does NOT redirect yet, letting the user complete
+ * password setup and handle creation.
+ */
+export async function verifySignupOtpAction(formData: FormData): Promise<AuthActionResult> {
+  const email = formData.get('email')?.toString().trim().toLowerCase();
+  const token = formData.get('token')?.toString().trim();
+
+  if (!email || !token) {
+    return { error: 'Enter your 6-digit verification code.' };
+  }
+
+  if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+    return { error: 'Enter your 6-digit verification code.' };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
+  });
+
+  if (error || !data.user) {
+    console.error('[verifySignupOtpAction] Verification failed:', error?.message);
+    const msg = error?.message?.toLowerCase() || '';
+    if (msg.includes('expired')) {
+      return { error: 'This code has expired. Request a new one.' };
+    }
+    if (msg.includes('invalid') || msg.includes('token') || msg.includes('incorrect')) {
+      return { error: "That code doesn't look right. Please try again." };
+    }
+    return { error: error?.message || "That code doesn't look right. Please try again." };
+  }
+
+  return { success: true, email };
+}
+
+/**
+ * 8c. Complete Signup Action: Sets the permanent password and unique explorer handle (@username).
+ * Next time the user logs in, they log in directly via email & password without needing OTP!
+ */
+export async function completeSignupAction(formData: FormData): Promise<AuthActionResult> {
+  const password = formData.get('password')?.toString();
+  const confirmPassword = formData.get('confirmPassword')?.toString();
+  const rawUsername = formData.get('username')?.toString();
+  const redirectedFrom = formData.get('redirectedFrom')?.toString() || '/';
+
+  if (!password || !confirmPassword || !rawUsername) {
+    return { error: 'All fields are required.' };
+  }
+
+  if (password.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: 'Passwords do not match.' };
+  }
+
+  const cleanUsername = rawUsername.trim().toLowerCase();
+  if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) {
+    return {
+      error: 'Username must be 3-20 characters long and contain only lowercase letters, numbers, and underscores (_).',
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'Session expired. Please restart registration.' };
+  }
+
+  // Check if username is already taken by another account
+  const { data: existingUser } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('username', cleanUsername)
+    .neq('id', user.id)
+    .maybeSingle();
+
+  if (existingUser) {
+    return { error: 'This handle is already taken. Please choose another.' };
+  }
+
+  // 1. Update user password and metadata in Supabase Auth
+  const { error: authError } = await supabase.auth.updateUser({
+    password,
+    data: { username: cleanUsername },
+  });
+
+  if (authError) {
+    return { error: authError.message };
+  }
+
+  // 2. Upsert profile with clean unique username and email
+  const { error: profileError } = await supabase.from('profiles').upsert({
+    id: user.id,
+    username: cleanUsername,
+    email: user.email,
+    full_name: cleanUsername,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (profileError) {
+    console.warn('[completeSignupAction] Profile upsert warning:', profileError.message);
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        username: cleanUsername,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('[completeSignupAction] Profile update error:', updateError.message);
+    }
+  }
+
+  const targetDestination =
+    redirectedFrom !== '/profile' && redirectedFrom.startsWith('/') ? redirectedFrom : '/';
+
+  redirect(targetDestination);
 }
 
 /**
