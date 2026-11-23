@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ─────────────────────────────────────────────────────────────────────────────
    HiddenGems Nepal — Design System Token Foundation
@@ -123,6 +123,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
   html {
     @apply font-sans;
@@ -183,8 +184,8 @@
   --radius-4xl: calc(var(--radius) * 2.5);   /* 30px */
 
   /* Font */
-  --font-heading: var(--font-sans);
-  --font-sans:    var(--font-sans);
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -224,16 +225,5 @@
   .animate-hero-logo,
   .animate-hero-glow {
     animation: none !important;
-  }
-}
-
-@layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
-  body {
-    background-color: hsl(var(--background));
-    color:            hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
