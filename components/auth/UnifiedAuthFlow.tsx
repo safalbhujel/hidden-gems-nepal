@@ -14,12 +14,14 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Clipboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GoogleIcon } from '@/components/icons/GoogleIcon';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { sendOtpAction, verifyOtpAction, login } from '@/app/(auth)/actions';
+import { CopyOtp } from '@/components/auth/CopyOtp';
 
 export type AuthFlowView = 'entry' | 'otp' | 'password';
 
@@ -134,13 +136,21 @@ export function UnifiedAuthFlow({
     formData.append('email', sanitizedEmail);
 
     startTransition(async () => {
-      const res = await sendOtpAction(formData);
-      if (res.error) {
-        setErrorMsg(res.error);
-      } else {
-        setView('otp');
-        setResendCooldown(60);
-        setDigits(['', '', '', '', '', '']);
+      try {
+        const res = await sendOtpAction(formData);
+        if (res.error) {
+          setErrorMsg(res.error);
+        } else {
+          setView('otp');
+          setResendCooldown(60);
+          setDigits(['', '', '', '', '', '']);
+          setNotificationMsg({
+            type: 'success',
+            text: 'Verification code sent. Check your inbox.',
+          });
+        }
+      } catch {
+        setErrorMsg("We couldn't connect. Check your internet and try again.");
       }
     });
   };
@@ -228,11 +238,19 @@ export function UnifiedAuthFlow({
     formData.append('redirectedFrom', redirectedFrom);
 
     startTransition(async () => {
-      const res = await verifyOtpAction(formData);
-      if (res?.error) {
-        setErrorMsg(res.error);
-      } else {
-        router.refresh();
+      try {
+        const res = await verifyOtpAction(formData);
+        if (res?.error) {
+          setErrorMsg(res.error);
+        } else {
+          setNotificationMsg({
+            type: 'success',
+            text: 'Email verified. Welcome to HiddenGems Nepal!',
+          });
+          router.refresh();
+        }
+      } catch {
+        setErrorMsg("We couldn't connect. Check your internet and try again.");
       }
     });
   };
@@ -241,29 +259,70 @@ export function UnifiedAuthFlow({
     e.preventDefault();
     const fullCode = digits.join('');
     if (fullCode.length !== 6) {
-      setErrorMsg('Please enter all 6 digits of the verification code.');
+      setErrorMsg('Enter your 6-digit verification code.');
       return;
     }
     submitOtpCode(fullCode);
   };
 
+  const handlePasteFromClipboard = async () => {
+    setErrorMsg(null);
+    try {
+      const text = await navigator.clipboard.readText();
+      const clean = text.replace(/\D/g, '').slice(0, 6);
+      if (!clean) {
+        setErrorMsg('Enter your 6-digit verification code.');
+        return;
+      }
+      const updated = ['', '', '', '', '', ''];
+      for (let i = 0; i < 6; i++) {
+        updated[i] = clean[i] || '';
+      }
+      setDigits(updated);
+      setNotificationMsg({
+        type: 'info',
+        text: 'Verification code copied to clipboard.',
+      });
+
+      if (clean.length === 6) {
+        submitOtpCode(clean);
+      } else {
+        const targetFocus = Math.min(clean.length, 5);
+        digitRefs.current[targetFocus]?.focus();
+      }
+    } catch {
+      setErrorMsg('Unable to access clipboard. Please paste into the boxes directly.');
+    }
+  };
+
   const handleResendOtp = () => {
-    if (resendCooldown > 0 || isPending) return;
+    if (resendCooldown > 0) {
+      setNotificationMsg({
+        type: 'info',
+        text: 'Please wait before requesting another code.',
+      });
+      return;
+    }
+    if (isPending) return;
     setErrorMsg(null);
 
     const formData = new FormData();
     formData.append('email', email.trim().toLowerCase());
 
     startTransition(async () => {
-      const res = await sendOtpAction(formData);
-      if (res.error) {
-        setErrorMsg(res.error);
-      } else {
-        setResendCooldown(60);
-        setNotificationMsg({
-          type: 'success',
-          text: `Fresh 6-digit verification code sent to ${email}`,
-        });
+      try {
+        const res = await sendOtpAction(formData);
+        if (res.error) {
+          setErrorMsg(res.error);
+        } else {
+          setResendCooldown(60);
+          setNotificationMsg({
+            type: 'success',
+            text: 'A fresh verification code is on its way.',
+          });
+        }
+      } catch {
+        setErrorMsg("We couldn't connect. Check your internet and try again.");
       }
     });
   };
@@ -575,6 +634,30 @@ export function UnifiedAuthFlow({
                   aria-label={`Digit ${idx + 1}`}
                 />
               ))}
+            </div>
+
+            {/* Clipboard Helper Bar: Paste Code or Copy Code */}
+            <div className="flex items-center justify-center pt-0.5 pb-1">
+              {digits.some((d) => d) ? (
+                <CopyOtp
+                  otp={digits.join('')}
+                  onCopySuccess={() =>
+                    setNotificationMsg({
+                      type: 'info',
+                      text: 'Verification code copied to clipboard.',
+                    })
+                  }
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePasteFromClipboard}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background/60 hover:bg-muted/80 px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition cursor-pointer active:scale-[0.98]"
+                >
+                  <Clipboard className="h-3.5 w-3.5 text-primary" />
+                  <span>Paste code from clipboard</span>
+                </button>
+              )}
             </div>
 
             <Button

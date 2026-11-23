@@ -227,7 +227,7 @@ export async function sendOtpAction(formData: FormData): Promise<AuthActionResul
     console.error('[sendOtpAction] Supabase error:', error.message);
     const msg = error.message.toLowerCase();
     if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
-      return { error: 'Please wait 60 seconds before requesting another verification code.' };
+      return { error: 'Please wait before requesting another code.' };
     }
     if (msg.includes('error sending')) {
       return { error: 'Unable to deliver verification email. Please verify your email address or check your SMTP settings.' };
@@ -248,11 +248,11 @@ export async function verifyOtpAction(formData: FormData): Promise<AuthActionRes
   const redirectedFrom = formData.get('redirectedFrom')?.toString() || '/';
 
   if (!email || !token) {
-    return { error: 'Email and 6-digit code are required.' };
+    return { error: 'Enter your 6-digit verification code.' };
   }
 
   if (token.length !== 6 || !/^\d{6}$/.test(token)) {
-    return { error: 'Please enter a valid 6-digit verification code.' };
+    return { error: 'Enter your 6-digit verification code.' };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -266,12 +266,12 @@ export async function verifyOtpAction(formData: FormData): Promise<AuthActionRes
     console.error('[verifyOtpAction] Verification failed:', error?.message);
     const msg = error?.message?.toLowerCase() || '';
     if (msg.includes('expired')) {
-      return { error: 'This verification code has expired. Please tap resend below for a fresh code.' };
+      return { error: 'This code has expired. Request a new one.' };
     }
-    if (msg.includes('invalid') || msg.includes('token')) {
-      return { error: 'Incorrect verification code. Please check your email and try again.' };
+    if (msg.includes('invalid') || msg.includes('token') || msg.includes('incorrect')) {
+      return { error: "That code doesn't look right. Please try again." };
     }
-    return { error: error?.message || 'Verification could not be completed. Please try again.' };
+    return { error: error?.message || "That code doesn't look right. Please try again." };
   }
 
   // Check username profile
