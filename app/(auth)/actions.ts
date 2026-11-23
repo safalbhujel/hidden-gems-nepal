@@ -32,7 +32,9 @@ export async function login(formData: FormData) {
 
   const rawRedirectTo = formData.get('redirectedFrom') as string | null;
   const targetDestination =
-    rawRedirectTo && rawRedirectTo !== '/profile' ? rawRedirectTo : '/';
+    rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')
+      ? rawRedirectTo
+      : '/';
 
   if (user) {
     const { data: profile } = await supabase
@@ -240,35 +242,102 @@ export async function sendOtpAction(formData: FormData): Promise<AuthActionResul
 }
 
 /**
- * 7b. Send Signup OTP Action: Enforces unique email (one account per email),
- * blocks disposable burner domains, and requests a 6-digit OTP from Supabase.
+ * 7b. Send Signup OTP Action:
+ * - Validates email, blocks disposable burner domains.
+ * - Enforces unique email: checks profiles table AND auth.users.
+ *   If registered: returns "This email is already registered. Please sign in with your password or use forgot password."
+ * - Validates username and checks uniqueness.
+ * - Validates password length (>= 6) and matching confirmation.
+ * - Dispatches 6-digit OTP from Supabase.
  */
 export async function sendSignupOtpAction(formData: FormData): Promise<AuthActionResult> {
   const rawEmail = formData.get('email')?.toString();
-  const validation = validateEmailDomain(rawEmail || '');
+  const rawUsername = formData.get('username')?.toString();
+  const password = formData.get('password')?.toString();
+  const confirmPassword = formData.get('confirmPassword')?.toString();
 
+  const validation = validateEmailDomain(rawEmail || '');
   if (!validation.isValid || !validation.sanitizedEmail) {
     return { error: validation.error || 'Please enter a valid email address.' };
   }
 
   const sanitizedEmail = validation.sanitizedEmail;
 
-  // Enforce one account per email
+  // Validate username if provided
+  if (rawUsername) {
+    const cleanUsername = rawUsername.trim().toLowerCase().replace(/^@/, '');
+    if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) {
+      return {
+        error:
+          'Username must be 3-20 characters long and contain only lowercase letters, numbers, and underscores (_).',
+      };
+    }
+  }
+
+  // Validate password if provided
+  if (password !== undefined) {
+    if (!password || password.length < 6) {
+      return { error: 'Password must be at least 6 characters.' };
+    }
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      return { error: 'Passwords do not match.' };
+    }
+  }
+
+  // Enforce one account per email & check handle uniqueness using privileged admin
   try {
     const admin = createSupabaseAdminClient();
+
+    // 1. Check profiles table for duplicate email
     const { data: existingProfile } = await admin
       .from('profiles')
-      .select('id')
+      .select('id, email')
       .ilike('email', sanitizedEmail)
       .maybeSingle();
 
     if (existingProfile) {
       return {
-        error: 'An account with this email already exists. Please sign in instead.',
+        error:
+          'This email is already registered. Please sign in with your password or use forgot password.',
       };
     }
+
+    // 2. Check auth.users directly via admin API
+    try {
+      const { data: usersData } = await admin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+      const authUser = usersData?.users?.find(
+        (u) => u.email?.toLowerCase() === sanitizedEmail.toLowerCase()
+      );
+      if (authUser) {
+        return {
+          error:
+            'This email is already registered. Please sign in with your password or use forgot password.',
+        };
+      }
+    } catch (listErr) {
+      console.warn('[sendSignupOtpAction] admin.listUsers notice:', listErr);
+    }
+
+    // 3. Check username uniqueness in profiles
+    if (rawUsername) {
+      const cleanUsername = rawUsername.trim().toLowerCase().replace(/^@/, '');
+      const { data: existingUsername } = await admin
+        .from('profiles')
+        .select('id')
+        .ilike('username', cleanUsername)
+        .maybeSingle();
+
+      if (existingUsername) {
+        return {
+          error: `This explorer handle (@${cleanUsername}) is already taken. Please choose another.`,
+        };
+      }
+    }
   } catch (err) {
-    console.warn('[sendSignupOtpAction] Profile check warning:', err);
+    console.warn('[sendSignupOtpAction] Uniqueness check warning:', err);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -286,12 +355,112 @@ export async function sendSignupOtpAction(formData: FormData): Promise<AuthActio
       return { error: 'Please wait before requesting another code.' };
     }
     if (msg.includes('error sending')) {
-      return { error: 'Unable to deliver verification email. Please verify your email address or check your SMTP settings.' };
+      return {
+        error:
+          'Unable to deliver verification email. Please verify your email address or check your SMTP settings.',
+      };
     }
     return { error: error.message };
   }
 
   return { success: true, email: sanitizedEmail };
+}
+
+/**
+ * 7c. Verify and Complete Signup Action:
+ * - Validates the 6-digit OTP token and establishes authenticated session.
+ * - Sets the user's permanent password.
+ * - Saves unique handle (@username) and profile details.
+ */
+export async function verifyAndCompleteSignupAction(formData: FormData): Promise<AuthActionResult> {
+  const email = formData.get('email')?.toString().trim().toLowerCase();
+  const token = formData.get('token')?.toString().trim();
+  const password = formData.get('password')?.toString();
+  const rawUsername = formData.get('username')?.toString();
+  const fullName = formData.get('fullName')?.toString()?.trim();
+
+  if (!email || !token) {
+    return { error: 'Enter your 6-digit verification code.' };
+  }
+
+  if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+    return { error: 'Enter your 6-digit verification code.' };
+  }
+
+  if (!password || password.length < 6) {
+    return { error: 'Password must be at least 6 characters.' };
+  }
+
+  const cleanUsername = (rawUsername || email.split('@')[0])
+    .trim()
+    .toLowerCase()
+    .replace(/^@/, '');
+
+  if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) {
+    return {
+      error:
+        'Username must be 3-20 characters long and contain only lowercase letters, numbers, and underscores (_).',
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  // 1. Verify OTP token to establish session
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
+  });
+
+  if (error || !data.user) {
+    console.error('[verifyAndCompleteSignupAction] Verification failed:', error?.message);
+    const msg = error?.message?.toLowerCase() || '';
+    if (msg.includes('expired')) {
+      return { error: 'This code has expired. Request a new one.' };
+    }
+    if (msg.includes('invalid') || msg.includes('token') || msg.includes('incorrect')) {
+      return { error: "That code doesn't look right. Please try again." };
+    }
+    return { error: error?.message || "That code doesn't look right. Please try again." };
+  }
+
+  const user = data.user;
+
+  // 2. Set permanent password and auth metadata
+  const { error: authError } = await supabase.auth.updateUser({
+    password,
+    data: {
+      username: cleanUsername,
+      full_name: fullName || cleanUsername,
+    },
+  });
+
+  if (authError) {
+    console.error('[verifyAndCompleteSignupAction] Password set error:', authError.message);
+    return { error: authError.message };
+  }
+
+  // 3. Upsert profile record
+  const { error: profileError } = await supabase.from('profiles').upsert({
+    id: user.id,
+    username: cleanUsername,
+    email: user.email || email,
+    full_name: fullName || cleanUsername,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (profileError) {
+    console.warn('[verifyAndCompleteSignupAction] Profile upsert notice:', profileError.message);
+    await supabase
+      .from('profiles')
+      .update({
+        username: cleanUsername,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+  }
+
+  return { success: true, email };
 }
 
 /**

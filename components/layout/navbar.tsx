@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { resolveUserAvatar } from '@/lib/constants/avatars';
+import { logout } from '@/app/(auth)/actions';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Mountain },
@@ -89,17 +90,48 @@ export function Navbar() {
       }
     });
 
+    const handleProfileUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{ avatarUrl?: string; username?: string }>;
+      const { avatarUrl, username } = customEvent.detail || {};
+      if (avatarUrl || username) {
+        setUserProfile((prev) => {
+          if (!prev) {
+            return avatarUrl && username ? { avatarUrl, username } : prev;
+          }
+          return {
+            username: username || prev.username,
+            avatarUrl: avatarUrl || prev.avatarUrl,
+          };
+        });
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('hgn:profile-updated', handleProfileUpdate);
+    }
+
     return () => {
       subscription.unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('hgn:profile-updated', handleProfileUpdate);
+      }
     };
   }, []);
 
   async function handleLogout() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
+    try {
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('[Navbar] browser signOut notice:', err);
+    }
     setUserProfile(null);
-    router.push('/');
-    router.refresh();
+    try {
+      await logout();
+    } catch {
+      router.push('/');
+      router.refresh();
+    }
   }
 
   // Hide public navbar inside the isolated admin console

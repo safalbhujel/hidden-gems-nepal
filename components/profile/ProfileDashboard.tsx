@@ -210,6 +210,13 @@ export function ProfileDashboard({
         setSaveMessage({ type: 'error', text: res.error });
       } else {
         setSaveMessage({ type: 'success', text: 'Emblem updated.' });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('hgn:profile-updated', {
+              detail: { avatarUrl: url },
+            })
+          );
+        }
         setTimeout(() => setSaveMessage(null), 3000);
       }
     });
@@ -256,6 +263,13 @@ export function ProfileDashboard({
       } else if (res.avatarUrl) {
         setCurrentAvatarUrl(res.avatarUrl);
         setSaveMessage({ type: 'success', text: 'Profile photo adjusted and saved.' });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('hgn:profile-updated', {
+              detail: { avatarUrl: res.avatarUrl },
+            })
+          );
+        }
         setTimeout(() => setSaveMessage(null), 3500);
         setIsCropModalOpen(false);
         if (cropImageSrc) {
@@ -286,6 +300,13 @@ export function ProfileDashboard({
         setSaveMessage({ type: 'error', text: res.error });
       } else {
         setSaveMessage({ type: 'success', text: 'Profile settings saved.' });
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('hgn:profile-updated', {
+              detail: { username: usernameInput, fullName: fullNameInput },
+            })
+          );
+        }
         setTimeout(() => setSaveMessage(null), 3500);
       }
     });
@@ -420,15 +441,30 @@ export function ProfileDashboard({
                 {bioInput || 'Documenting uncrowded ridges, glacial valleys, and solitary footpaths across Nepal.'}
               </p>
 
-              {/* Quick Change Avatar Trigger */}
-              <div className="pt-1">
+              {/* Quick Actions: Edit Profile & Change Avatar */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setActiveTab('settings');
+                    setTimeout(() => {
+                      document.getElementById('edit-profile-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 50);
+                  }}
+                  className="h-8 gap-1.5 text-xs font-semibold rounded-xl bg-card hover:bg-muted border-border/80 cursor-pointer shadow-xs"
+                >
+                  <Pencil className="h-3.5 w-3.5 text-primary" />
+                  <span>Edit Profile & Security</span>
+                </Button>
                 <button
                   type="button"
                   onClick={() => setIsAvatarModalOpen(true)}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>Choose Emblem or Upload Custom Photo</span>
+                  <span>Change Photo</span>
                 </button>
               </div>
             </div>
@@ -549,7 +585,7 @@ export function ProfileDashboard({
           }`}
         >
           <Settings className="h-4 w-4" />
-          <span>Dossier Settings</span>
+          <span>Edit Profile & Security</span>
         </button>
       </div>
 
@@ -839,9 +875,9 @@ export function ProfileDashboard({
         </div>
       )}
 
-      {/* ── Tab Content: Explorer Settings ───────────────────────────────── */}
+      {/* ── Tab Content: Explorer Settings / Edit Profile ───────────────── */}
       {activeTab === 'settings' && (
-        <div className="space-y-8 max-w-xl">
+        <div id="edit-profile-section" className="space-y-8 max-w-xl animate-in fade-in-50 duration-200">
           <form onSubmit={handleSaveSettings} className="space-y-6">
             <div>
               <h2 className="text-base sm:text-lg font-bold text-foreground">Dossier Details</h2>
