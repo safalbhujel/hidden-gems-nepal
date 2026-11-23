@@ -9,9 +9,16 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const rawNext = requestUrl.searchParams.get('next') ?? '/';
-  // If next is '/profile', default to home page as requested
-  const next = rawNext === '/profile' ? '/' : rawNext;
+  const rawNext = requestUrl.searchParams.get('next');
+  const next =
+    rawNext &&
+    rawNext.startsWith('/') &&
+    !rawNext.startsWith('//') &&
+    rawNext !== '/' &&
+    rawNext !== '/login' &&
+    rawNext !== '/signup'
+      ? rawNext
+      : '/profile';
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
 
@@ -29,7 +36,15 @@ export async function GET(request: Request) {
 
       if (!exchangeError) {
         // Enforce safe relative redirect path to prevent open redirect vulnerabilities
-        const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+        const safeNext =
+          next &&
+          next.startsWith('/') &&
+          !next.startsWith('//') &&
+          next !== '/' &&
+          next !== '/login' &&
+          next !== '/signup'
+            ? next
+            : '/profile';
 
         // Check if user has chosen a username
         const {

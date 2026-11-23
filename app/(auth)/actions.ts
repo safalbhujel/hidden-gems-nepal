@@ -32,9 +32,14 @@ export async function login(formData: FormData) {
 
   const rawRedirectTo = formData.get('redirectedFrom') as string | null;
   const targetDestination =
-    rawRedirectTo && rawRedirectTo.startsWith('/') && !rawRedirectTo.startsWith('//')
+    rawRedirectTo &&
+    rawRedirectTo.startsWith('/') &&
+    !rawRedirectTo.startsWith('//') &&
+    rawRedirectTo !== '/' &&
+    rawRedirectTo !== '/login' &&
+    rawRedirectTo !== '/signup'
       ? rawRedirectTo
-      : '/';
+      : '/profile';
 
   if (user) {
     const { data: profile } = await supabase
@@ -152,8 +157,17 @@ export async function saveUsername(formData: FormData) {
     data: { username: cleanUsername },
   });
 
-  // Redirect to requested next page or directly to Home
-  const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  // Redirect to requested next page or directly to Profile
+  const rawNext = (formData.get('next') as string | null) || '/profile';
+  const safeNext =
+    rawNext &&
+    rawNext.startsWith('/') &&
+    !rawNext.startsWith('//') &&
+    rawNext !== '/' &&
+    rawNext !== '/login' &&
+    rawNext !== '/signup'
+      ? rawNext
+      : '/profile';
   redirect(safeNext);
 }
 
@@ -199,7 +213,7 @@ export async function resetPassword(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect('/');
+  redirect('/profile');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -587,7 +601,14 @@ export async function completeSignupAction(formData: FormData): Promise<AuthActi
   }
 
   const targetDestination =
-    redirectedFrom !== '/profile' && redirectedFrom.startsWith('/') ? redirectedFrom : '/';
+    redirectedFrom &&
+    redirectedFrom.startsWith('/') &&
+    !redirectedFrom.startsWith('//') &&
+    redirectedFrom !== '/' &&
+    redirectedFrom !== '/login' &&
+    redirectedFrom !== '/signup'
+      ? redirectedFrom
+      : '/profile';
 
   redirect(targetDestination);
 }
@@ -637,7 +658,14 @@ export async function verifyOtpAction(formData: FormData): Promise<AuthActionRes
 
   const hasUsername = Boolean(profile?.username || data.user.user_metadata?.username);
   const targetDestination =
-    redirectedFrom !== '/profile' && redirectedFrom.startsWith('/') ? redirectedFrom : '/';
+    redirectedFrom &&
+    redirectedFrom.startsWith('/') &&
+    !redirectedFrom.startsWith('//') &&
+    redirectedFrom !== '/' &&
+    redirectedFrom !== '/login' &&
+    redirectedFrom !== '/signup'
+      ? redirectedFrom
+      : '/profile';
 
   if (!hasUsername) {
     redirect(`/choose-username?next=${encodeURIComponent(targetDestination)}`);
@@ -720,7 +748,7 @@ export async function verifyOtpAndSetPasswordAction(formData: FormData): Promise
     return { error: updateError.message };
   }
 
-  redirect('/');
+  redirect('/profile');
 }
 
 /**

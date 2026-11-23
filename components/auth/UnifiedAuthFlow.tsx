@@ -204,6 +204,16 @@ export function UnifiedAuthFlow({
       if (res?.error) {
         setErrorMsg(res.error);
       } else {
+        const targetUrl =
+          redirectedFrom &&
+          redirectedFrom.startsWith('/') &&
+          !redirectedFrom.startsWith('//') &&
+          redirectedFrom !== '/' &&
+          redirectedFrom !== '/login' &&
+          redirectedFrom !== '/signup'
+            ? redirectedFrom
+            : '/profile';
+        router.push(targetUrl);
         router.refresh();
       }
     });
@@ -360,9 +370,14 @@ export function UnifiedAuthFlow({
             text: 'Email verified. Welcome to HiddenGems Nepal!',
           });
           const targetUrl =
-            redirectedFrom && redirectedFrom.startsWith('/') && !redirectedFrom.startsWith('//')
+            redirectedFrom &&
+            redirectedFrom.startsWith('/') &&
+            !redirectedFrom.startsWith('//') &&
+            redirectedFrom !== '/' &&
+            redirectedFrom !== '/login' &&
+            redirectedFrom !== '/signup'
               ? redirectedFrom
-              : '/';
+              : '/profile';
           router.push(targetUrl);
           router.refresh();
         }

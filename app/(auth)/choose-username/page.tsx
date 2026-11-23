@@ -14,7 +14,16 @@ import { AlertCircle, AtSign, Check, Loader2, ArrowRight } from 'lucide-react';
 function ChooseUsernameForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get('next') || '/';
+  const rawNext = searchParams.get('next');
+  const next =
+    rawNext &&
+    rawNext.startsWith('/') &&
+    !rawNext.startsWith('//') &&
+    rawNext !== '/' &&
+    rawNext !== '/login' &&
+    rawNext !== '/signup'
+      ? rawNext
+      : '/profile';
 
   const [username, setUsername] = useState('');
   const [initialLoading, setInitialLoading] = useState(true);
