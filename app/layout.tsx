@@ -11,7 +11,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "HiddenGems Nepal | Discover the Nepal everyone misses",
   description:
-    "Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots across all 77 districts of Nepal. Shared by locals.",
+    "Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots and much more natural hidden gems across all 77 districts of Nepal. Shared by locals.",
   icons: {
     icon: "/icons/HiddenGemsNepal_Affinity.svg",
   },

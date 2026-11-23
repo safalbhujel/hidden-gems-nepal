@@ -71,24 +71,34 @@ export default async function HomePage() {
         />
 
         <div className="container relative mx-auto max-w-4xl px-4 text-center">
-          {/* Logo with high visibility and dark mode contrast */}
-          <div className="mb-8 flex justify-center">
-            <Image
-              src="/icons/HiddenGemsNepal_Affinity.svg"
-              alt="HiddenGems Nepal"
-              width={280}
-              height={210}
-              priority
-              className="h-20 w-auto object-contain md:h-28 dark:hidden"
-            />
-            <Image
-              src="/icons/HiddenGemsNepal_Affinityy.svg"
-              alt="HiddenGems Nepal"
-              width={280}
-              height={210}
-              priority
-              className="hidden h-20 w-auto object-contain md:h-28 dark:block"
-            />
+          {/* Main Logo — Prominent, Visible, and Animated */}
+          <div className="mb-10 flex justify-center">
+            <div className="group relative inline-flex items-center justify-center animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-700 ease-out">
+              {/* Subtle ambient warm aura behind the logo */}
+              <div
+                className="pointer-events-none absolute -inset-8 -z-10 rounded-full bg-[#FF8500]/12 blur-3xl dark:bg-[#FF8500]/25 animate-hero-glow"
+                aria-hidden="true"
+              />
+
+              <div className="animate-hero-logo transition-transform duration-300 ease-out group-hover:scale-[1.04]">
+                <Image
+                  src="/icons/HiddenGemsNepal_Affinity.svg"
+                  alt="HiddenGems Nepal"
+                  width={460}
+                  height={345}
+                  priority
+                  className="h-28 sm:h-36 md:h-44 lg:h-52 w-auto object-contain drop-shadow-md dark:hidden"
+                />
+                <Image
+                  src="/icons/HiddenGemsNepal_Affinityy.svg"
+                  alt="HiddenGems Nepal"
+                  width={460}
+                  height={345}
+                  priority
+                  className="hidden h-28 sm:h-36 md:h-44 lg:h-52 w-auto object-contain drop-shadow-[0_12px_36px_rgba(255,133,0,0.24)] dark:block"
+                />
+              </div>
+            </div>
           </div>
 
           {username && (

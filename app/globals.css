@@ -188,8 +188,45 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Base layer — body typography & colour from tokens only
+   Hero Logo Motion & Ambient Lighting
    ──────────────────────────────────────────────────────────────────────────── */
+@keyframes hero-logo-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes hero-glow-pulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+.animate-hero-logo {
+  animation: hero-logo-float 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-hero-glow {
+  animation: hero-glow-pulse 6s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-logo,
+  .animate-hero-glow {
+    animation: none !important;
+  }
+}
+
 @layer base {
   * {
     border-color: hsl(var(--border));
