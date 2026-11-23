@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Loader2,
   AlertCircle,
+  CheckCircle2,
   Eye,
   EyeOff,
   Lock,
@@ -57,7 +58,17 @@ export function UnifiedAuthFlow({
   const [isPending, startTransition] = useTransition();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(urlError);
+  const [notificationMsg, setNotificationMsg] = useState<{ type: 'success' | 'info'; text: string } | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Auto-dismiss notification after 4 seconds
+  useEffect(() => {
+    if (!notificationMsg) return;
+    const timer = setTimeout(() => {
+      setNotificationMsg(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [notificationMsg]);
 
   // Cooldown countdown effect
   useEffect(() => {
@@ -136,6 +147,7 @@ export function UnifiedAuthFlow({
 
   // ── 3. Screen 2: OTP Digit Micro-Interactions ───────────────────────────────
   const handleDigitChange = (index: number, val: string) => {
+    if (errorMsg) setErrorMsg(null);
     const clean = val.replace(/\D/g, '');
     if (!clean) {
       const updated = [...digits];
@@ -248,6 +260,10 @@ export function UnifiedAuthFlow({
         setErrorMsg(res.error);
       } else {
         setResendCooldown(60);
+        setNotificationMsg({
+          type: 'success',
+          text: `Fresh 6-digit verification code sent to ${email}`,
+        });
       }
     });
   };
@@ -319,6 +335,14 @@ export function UnifiedAuthFlow({
               Sign in or create an account to save trails and share local gems.
             </p>
           </div>
+
+          {/* Success / Info Notification Banner */}
+          {notificationMsg && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in-50 duration-200">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed font-medium">{notificationMsg.text}</span>
+            </div>
+          )}
 
           {/* Error Banner */}
           {errorMsg && (
@@ -482,6 +506,14 @@ export function UnifiedAuthFlow({
               </button>
             </p>
           </div>
+
+          {/* Success / Info Notification Banner */}
+          {notificationMsg && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in-50 duration-200">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed font-medium">{notificationMsg.text}</span>
+            </div>
+          )}
 
           {/* Error Banner */}
           {errorMsg && (
@@ -649,6 +681,14 @@ export function UnifiedAuthFlow({
               Please enter your password to access your curated gems.
             </p>
           </div>
+
+          {/* Success / Info Notification Banner */}
+          {notificationMsg && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 animate-in fade-in-50 duration-200">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span className="leading-relaxed font-medium">{notificationMsg.text}</span>
+            </div>
+          )}
 
           {/* Error Banner */}
           {errorMsg && (

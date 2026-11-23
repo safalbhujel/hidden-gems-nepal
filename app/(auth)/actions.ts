@@ -225,6 +225,13 @@ export async function sendOtpAction(formData: FormData): Promise<AuthActionResul
 
   if (error) {
     console.error('[sendOtpAction] Supabase error:', error.message);
+    const msg = error.message.toLowerCase();
+    if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+      return { error: 'Please wait 60 seconds before requesting another verification code.' };
+    }
+    if (msg.includes('error sending')) {
+      return { error: 'Unable to deliver verification email. Please verify your email address or check your SMTP settings.' };
+    }
     return { error: error.message };
   }
 
@@ -257,7 +264,14 @@ export async function verifyOtpAction(formData: FormData): Promise<AuthActionRes
 
   if (error || !data.user) {
     console.error('[verifyOtpAction] Verification failed:', error?.message);
-    return { error: error?.message || 'Invalid or expired 6-digit code. Please try again.' };
+    const msg = error?.message?.toLowerCase() || '';
+    if (msg.includes('expired')) {
+      return { error: 'This verification code has expired. Please tap resend below for a fresh code.' };
+    }
+    if (msg.includes('invalid') || msg.includes('token')) {
+      return { error: 'Incorrect verification code. Please check your email and try again.' };
+    }
+    return { error: error?.message || 'Verification could not be completed. Please try again.' };
   }
 
   // Check username profile
