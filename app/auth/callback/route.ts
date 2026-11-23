@@ -16,9 +16,10 @@ export async function GET(request: Request) {
     !rawNext.startsWith('//') &&
     rawNext !== '/' &&
     rawNext !== '/login' &&
-    rawNext !== '/signup'
+    rawNext !== '/signup' &&
+    rawNext !== '/profile'
       ? rawNext
-      : '/profile';
+      : '/';
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
 
@@ -42,9 +43,10 @@ export async function GET(request: Request) {
           !next.startsWith('//') &&
           next !== '/' &&
           next !== '/login' &&
-          next !== '/signup'
+          next !== '/signup' &&
+          next !== '/profile'
             ? next
-            : '/profile';
+            : '/';
 
         // Check if user has chosen a username
         const {
@@ -73,9 +75,15 @@ export async function GET(request: Request) {
               .eq('id', user.id);
           }
 
+          const detectedUser = profile?.username || user.user_metadata?.username || user.email?.split('@')[0] || '';
           const hasUsername = Boolean(profile?.username || user.user_metadata?.username);
           if (!hasUsername) {
             targetUrl = `/choose-username?next=${encodeURIComponent(safeNext)}`;
+          } else {
+            const welcomeParam = detectedUser ? `welcome=1&user=${encodeURIComponent(detectedUser)}` : 'welcome=1';
+            targetUrl = targetUrl === '/'
+              ? `/?${welcomeParam}`
+              : `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}${welcomeParam}`;
           }
         }
 

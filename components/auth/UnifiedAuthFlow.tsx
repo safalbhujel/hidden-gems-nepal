@@ -200,22 +200,64 @@ export function UnifiedAuthFlow({
     formData.append('redirectedFrom', redirectedFrom);
 
     startTransition(async () => {
-      const res = await login(formData);
-      if (res?.error) {
-        setErrorMsg(res.error);
-      } else {
-        const targetUrl =
-          redirectedFrom &&
-          redirectedFrom.startsWith('/') &&
-          !redirectedFrom.startsWith('//') &&
-          redirectedFrom !== '/' &&
-          redirectedFrom !== '/login' &&
-          redirectedFrom !== '/signup'
-            ? redirectedFrom
-            : '/profile';
-        router.push(targetUrl);
-        router.refresh();
+      // 1. Establish browser session directly for instant reactive UI
+      const supabase = createSupabaseBrowserClient();
+      const { data: browserAuth, error: browserError } =
+        await supabase.auth.signInWithPassword({
+          email: sanitizedEmail,
+          password,
+        });
+
+      if (browserError) {
+        setErrorMsg(browserError.message);
+        return;
       }
+
+      // 2. Fetch profile data immediately to cache and broadcast
+      let activeUsername =
+        browserAuth.user?.user_metadata?.username || sanitizedEmail.split('@')[0];
+      let activeAvatar = '/avatars/snow-leopard.svg';
+
+      if (browserAuth.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, avatar_url')
+          .eq('id', browserAuth.user.id)
+          .maybeSingle();
+
+        if (profile?.username) {
+          activeUsername = profile.username;
+        }
+        if (profile?.avatar_url) {
+          activeAvatar = profile.avatar_url;
+        }
+      }
+
+      const cachedUser = { username: activeUsername, avatarUrl: activeAvatar };
+      try {
+        localStorage.setItem('hgn_cached_user', JSON.stringify(cachedUser));
+        sessionStorage.setItem('hgn_cached_user', JSON.stringify(cachedUser));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent('hgn:auth-state-changed', { detail: cachedUser })
+      );
+
+      // 3. Run server action to synchronize HTTP cookies
+      await login(formData);
+
+      // 4. Redirect to home page with welcome animation trigger
+      const targetUrl =
+        redirectedFrom &&
+        redirectedFrom.startsWith('/') &&
+        !redirectedFrom.startsWith('//') &&
+        redirectedFrom !== '/' &&
+        redirectedFrom !== '/login' &&
+        redirectedFrom !== '/signup'
+          ? `${redirectedFrom}${redirectedFrom.includes('?') ? '&' : '?'}welcome=1&user=${encodeURIComponent(activeUsername)}`
+          : `/?welcome=1&user=${encodeURIComponent(activeUsername)}`;
+
+      router.push(targetUrl);
+      router.refresh();
     });
   };
 
@@ -369,6 +411,20 @@ export function UnifiedAuthFlow({
             type: 'success',
             text: 'Email verified. Welcome to HiddenGems Nepal!',
           });
+
+          const cleanUser = cleanUsername || email.trim().toLowerCase().split('@')[0];
+          const cachedUser = {
+            username: cleanUser,
+            avatarUrl: '/avatars/snow-leopard.svg',
+          };
+          try {
+            localStorage.setItem('hgn_cached_user', JSON.stringify(cachedUser));
+            sessionStorage.setItem('hgn_cached_user', JSON.stringify(cachedUser));
+          } catch {}
+          window.dispatchEvent(
+            new CustomEvent('hgn:auth-state-changed', { detail: cachedUser })
+          );
+
           const targetUrl =
             redirectedFrom &&
             redirectedFrom.startsWith('/') &&
@@ -376,8 +432,8 @@ export function UnifiedAuthFlow({
             redirectedFrom !== '/' &&
             redirectedFrom !== '/login' &&
             redirectedFrom !== '/signup'
-              ? redirectedFrom
-              : '/profile';
+              ? `${redirectedFrom}${redirectedFrom.includes('?') ? '&' : '?'}welcome=1&user=${encodeURIComponent(cleanUser)}`
+              : `/?welcome=1&user=${encodeURIComponent(cleanUser)}`;
           router.push(targetUrl);
           router.refresh();
         }

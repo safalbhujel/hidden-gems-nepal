@@ -23,7 +23,25 @@ export function Navbar() {
   const [userProfile, setUserProfile] = useState<{
     username: string;
     avatarUrl: string;
-  } | null>(null);
+  } | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached =
+          sessionStorage.getItem('hgn_cached_user') ||
+          localStorage.getItem('hgn_cached_user');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.username) {
+            return {
+              username: parsed.username,
+              avatarUrl: parsed.avatarUrl || '/avatars/snow-leopard.svg',
+            };
+          }
+        }
+      } catch {}
+    }
+    return null;
+  });
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -49,12 +67,25 @@ export function Navbar() {
 
           if (handle) {
             const { avatarUrl } = resolveUserAvatar(profile?.avatar_url, user.user_metadata);
-            setUserProfile({ username: handle, avatarUrl });
+            const userObj = { username: handle, avatarUrl };
+            setUserProfile(userObj);
+            try {
+              localStorage.setItem('hgn_cached_user', JSON.stringify(userObj));
+              sessionStorage.setItem('hgn_cached_user', JSON.stringify(userObj));
+            } catch {}
           } else {
             setUserProfile(null);
+            try {
+              localStorage.removeItem('hgn_cached_user');
+              sessionStorage.removeItem('hgn_cached_user');
+            } catch {}
           }
         } else {
           setUserProfile(null);
+          try {
+            localStorage.removeItem('hgn_cached_user');
+            sessionStorage.removeItem('hgn_cached_user');
+          } catch {}
         }
       } catch (err) {
         console.error('[Navbar] User fetch error:', err);
@@ -81,7 +112,12 @@ export function Navbar() {
 
         if (handle) {
           const { avatarUrl } = resolveUserAvatar(profile?.avatar_url, session.user.user_metadata);
-          setUserProfile({ username: handle, avatarUrl });
+          const userObj = { username: handle, avatarUrl };
+          setUserProfile(userObj);
+          try {
+            localStorage.setItem('hgn_cached_user', JSON.stringify(userObj));
+            sessionStorage.setItem('hgn_cached_user', JSON.stringify(userObj));
+          } catch {}
         } else {
           setUserProfile(null);
         }
@@ -95,37 +131,69 @@ export function Navbar() {
       const { avatarUrl, username } = customEvent.detail || {};
       if (avatarUrl || username) {
         setUserProfile((prev) => {
-          if (!prev) {
-            return avatarUrl && username ? { avatarUrl, username } : prev;
-          }
-          return {
-            username: username || prev.username,
-            avatarUrl: avatarUrl || prev.avatarUrl,
+          const updated = {
+            username: username || prev?.username || '',
+            avatarUrl: avatarUrl || prev?.avatarUrl || '/avatars/snow-leopard.svg',
           };
+          try {
+            localStorage.setItem('hgn_cached_user', JSON.stringify(updated));
+            sessionStorage.setItem('hgn_cached_user', JSON.stringify(updated));
+          } catch {}
+          return updated;
         });
+      }
+    };
+
+    const handleAuthStateChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{ avatarUrl?: string; username?: string }>;
+      const { avatarUrl, username } = customEvent.detail || {};
+      if (username) {
+        const updated = {
+          username,
+          avatarUrl: avatarUrl || '/avatars/snow-leopard.svg',
+        };
+        setUserProfile(updated);
+        try {
+          localStorage.setItem('hgn_cached_user', JSON.stringify(updated));
+          sessionStorage.setItem('hgn_cached_user', JSON.stringify(updated));
+        } catch {}
+      } else {
+        setUserProfile(null);
+        try {
+          localStorage.removeItem('hgn_cached_user');
+          sessionStorage.removeItem('hgn_cached_user');
+        } catch {}
       }
     };
 
     if (typeof window !== 'undefined') {
       window.addEventListener('hgn:profile-updated', handleProfileUpdate);
+      window.addEventListener('hgn:auth-state-changed', handleAuthStateChanged);
     }
 
     return () => {
       subscription.unsubscribe();
       if (typeof window !== 'undefined') {
         window.removeEventListener('hgn:profile-updated', handleProfileUpdate);
+        window.removeEventListener('hgn:auth-state-changed', handleAuthStateChanged);
       }
     };
-  }, []);
+  }, [pathname]);
 
   async function handleLogout() {
+    setUserProfile(null);
+    try {
+      localStorage.removeItem('hgn_cached_user');
+      sessionStorage.removeItem('hgn_cached_user');
+      window.dispatchEvent(new CustomEvent('hgn:auth-state-changed', { detail: {} }));
+    } catch {}
+
     try {
       const supabase = createSupabaseBrowserClient();
       await supabase.auth.signOut();
     } catch (err) {
       console.warn('[Navbar] browser signOut notice:', err);
     }
-    setUserProfile(null);
     try {
       await logout();
     } catch {

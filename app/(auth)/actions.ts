@@ -31,15 +31,15 @@ export async function login(formData: FormData) {
   } = await supabase.auth.getUser();
 
   const rawRedirectTo = formData.get('redirectedFrom') as string | null;
-  const targetDestination =
+  const isCustomDest =
     rawRedirectTo &&
     rawRedirectTo.startsWith('/') &&
     !rawRedirectTo.startsWith('//') &&
     rawRedirectTo !== '/' &&
     rawRedirectTo !== '/login' &&
-    rawRedirectTo !== '/signup'
-      ? rawRedirectTo
-      : '/profile';
+    rawRedirectTo !== '/signup';
+
+  let username = user?.user_metadata?.username || user?.email?.split('@')[0] || '';
 
   if (user) {
     const { data: profile } = await supabase
@@ -48,13 +48,23 @@ export async function login(formData: FormData) {
       .eq('id', user.id)
       .maybeSingle();
 
+    if (profile?.username) {
+      username = profile.username;
+    }
+
     const hasUsername = Boolean(profile?.username || user.user_metadata?.username);
     if (!hasUsername) {
-      redirect(`/choose-username?next=${encodeURIComponent(targetDestination)}`);
+      const pendingNext = isCustomDest ? rawRedirectTo! : '/';
+      redirect(`/choose-username?next=${encodeURIComponent(pendingNext)}`);
     }
   }
 
-  // Redirect directly to Home page or explicit destination
+  const welcomeParam = username ? `welcome=1&user=${encodeURIComponent(username)}` : 'welcome=1';
+  const targetDestination = isCustomDest
+    ? `${rawRedirectTo}${rawRedirectTo!.includes('?') ? '&' : '?'}${welcomeParam}`
+    : `/?${welcomeParam}`;
+
+  // Redirect directly to Home page with welcome animation trigger
   redirect(targetDestination);
 }
 
@@ -156,17 +166,22 @@ export async function saveUsername(formData: FormData) {
     data: { username: cleanUsername },
   });
 
-  // Redirect to requested next page or directly to Profile
-  const rawNext = (formData.get('next') as string | null) || '/profile';
-  const safeNext =
+  // Redirect to requested next page or directly to Home with welcome animation
+  const rawNext = formData.get('next') as string | null;
+  const isCustomNext =
     rawNext &&
     rawNext.startsWith('/') &&
     !rawNext.startsWith('//') &&
     rawNext !== '/' &&
     rawNext !== '/login' &&
-    rawNext !== '/signup'
-      ? rawNext
-      : '/profile';
+    rawNext !== '/signup' &&
+    rawNext !== '/profile';
+
+  const welcomeParam = `welcome=1&user=${encodeURIComponent(cleanUsername)}`;
+  const safeNext = isCustomNext
+    ? `${rawNext}${rawNext!.includes('?') ? '&' : '?'}${welcomeParam}`
+    : `/?${welcomeParam}`;
+
   redirect(safeNext);
 }
 
@@ -599,15 +614,19 @@ export async function completeSignupAction(formData: FormData): Promise<AuthActi
     }
   }
 
-  const targetDestination =
+  const isCustomDest =
     redirectedFrom &&
     redirectedFrom.startsWith('/') &&
     !redirectedFrom.startsWith('//') &&
     redirectedFrom !== '/' &&
     redirectedFrom !== '/login' &&
-    redirectedFrom !== '/signup'
-      ? redirectedFrom
-      : '/profile';
+    redirectedFrom !== '/signup' &&
+    redirectedFrom !== '/profile';
+
+  const welcomeParam = `welcome=1&user=${encodeURIComponent(cleanUsername)}`;
+  const targetDestination = isCustomDest
+    ? `${redirectedFrom}${redirectedFrom!.includes('?') ? '&' : '?'}${welcomeParam}`
+    : `/?${welcomeParam}`;
 
   redirect(targetDestination);
 }
@@ -655,16 +674,21 @@ export async function verifyOtpAction(formData: FormData): Promise<AuthActionRes
     .eq('id', data.user.id)
     .maybeSingle();
 
-  const hasUsername = Boolean(profile?.username || data.user.user_metadata?.username);
-  const targetDestination =
+  const username = profile?.username || data.user.user_metadata?.username || data.user.email?.split('@')[0] || '';
+  const hasUsername = Boolean(username);
+  const isCustomDest =
     redirectedFrom &&
     redirectedFrom.startsWith('/') &&
     !redirectedFrom.startsWith('//') &&
     redirectedFrom !== '/' &&
     redirectedFrom !== '/login' &&
-    redirectedFrom !== '/signup'
-      ? redirectedFrom
-      : '/profile';
+    redirectedFrom !== '/signup' &&
+    redirectedFrom !== '/profile';
+
+  const welcomeParam = username ? `welcome=1&user=${encodeURIComponent(username)}` : 'welcome=1';
+  const targetDestination = isCustomDest
+    ? `${redirectedFrom}${redirectedFrom.includes('?') ? '&' : '?'}${welcomeParam}`
+    : `/?${welcomeParam}`;
 
   if (!hasUsername) {
     redirect(`/choose-username?next=${encodeURIComponent(targetDestination)}`);

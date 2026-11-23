@@ -11,6 +11,7 @@ import { FeaturedGemsClient } from '@/components/places/FeaturedGemsClient'
 import { getPlacesForCards, getCategories } from '@/lib/queries/places'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { CategoryIcon } from '@/components/icons/CategoryIcon'
+import { WelcomeBanner } from '@/components/home/WelcomeBanner'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEO
@@ -30,7 +31,15 @@ const DISTRICTS = [
   'Solukhumbu', 'Banke', 'Palpa', 'Ilam', 'Dolpa', 'Humla',
 ]
 
-export default async function HomePage() {
+interface HomePageProps {
+  searchParams?: Promise<{
+    welcome?: string
+    user?: string
+  }>
+}
+
+export default async function HomePage({ searchParams }: HomePageProps = {}) {
+  const resolvedParams = searchParams ? await searchParams : undefined
   const supabase = await createSupabaseServerClient()
   const {
     data: { user },
@@ -101,11 +110,11 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {username && (
-            <div className="mb-5 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-primary animate-in fade-in-50">
-              <span>Namaste, @{username} · Welcome back</span>
-            </div>
-          )}
+          <WelcomeBanner
+            initialUsername={username}
+            searchParamUser={resolvedParams?.user}
+            isWelcomeRedirect={Boolean(resolvedParams?.welcome)}
+          />
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground mb-5 leading-tight">
             Discover the Nepal that{' '}
