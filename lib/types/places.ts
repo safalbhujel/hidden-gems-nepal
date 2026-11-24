@@ -52,7 +52,9 @@ export interface Review {
   rating: number
   comment: string | null
   created_at: string
+  source?: 'review' | 'comment'
   profiles?: {
+    username?: string | null
     full_name: string | null
     avatar_url: string | null
   } | null
@@ -94,6 +96,12 @@ export interface PlaceCardData {
   } | null
   // Only the first (cover) image
   cover_image_url: string | null
+  image_count?: number
+  // Live engagement & interaction fields
+  heart_count?: number
+  is_hearted?: boolean
+  is_saved?: boolean
+  comment_count?: number
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -154,6 +162,8 @@ export interface Place {
   place_images: PlaceImage[]
   place_tags: PlaceTag[]
   reviews: Review[]
+  heart_count?: number
+  is_hearted?: boolean
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -168,4 +178,5 @@ export interface GetPlacesOptions {
   sort?: SortOption
   limit?: number
   offset?: number
+  userId?: string | null
 }

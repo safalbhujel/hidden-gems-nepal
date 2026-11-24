@@ -35,6 +35,8 @@ import {
 import type { PlaceMapPin } from '@/lib/types/places';
 import { Button } from '@/components/ui/button';
 import { CategoryIcon } from '@/components/icons/CategoryIcon';
+import { GoogleMapsIcon } from '@/components/places/GoogleMapsIcon';
+import { buildGoogleMapsDirectionsUrl } from '@/lib/utils/geo';
 import { parseCoordinates } from '@/lib/services/geocoding';
 
 interface ExploreMapProps {
@@ -934,20 +936,33 @@ export function ExploreMap({
                 </h4>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-border/60 mt-2">
+              <div className="flex items-center justify-between pt-2 border-t border-border/60 mt-2 gap-1.5">
                 <div className="flex items-center gap-1 text-xs text-amber-500 font-semibold">
                   <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                   <span>{activePlace.average_rating > 0 ? activePlace.average_rating.toFixed(1) : 'New'}</span>
                   <span className="text-[10px] text-muted-foreground">({activePlace.review_count})</span>
                 </div>
 
-                <Link
-                  href={`/places/${activePlace.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF8500] hover:bg-[#e07500] px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,133,0,0.3)] active:scale-[0.98] transition-all"
-                >
-                  <span>Explore</span>
-                  <ExternalLink className="h-3 w-3" />
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={buildGoogleMapsDirectionsUrl(activePlace.latitude, activePlace.longitude)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-xl border border-border bg-card hover:border-primary px-2.5 py-1.5 text-[11px] font-semibold text-foreground transition-colors"
+                    title="Get Directions on Google Maps"
+                  >
+                    <GoogleMapsIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span>Directions</span>
+                  </a>
+
+                  <Link
+                    href={`/places/${activePlace.slug}`}
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#FF8500] hover:bg-[#e07500] px-3 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,133,0,0.3)] active:scale-[0.98] transition-all"
+                  >
+                    <span>Uncover</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

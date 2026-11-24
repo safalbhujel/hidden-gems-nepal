@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { SmartSearchBar } from '@/components/search/SmartSearchBar'
 import { FeaturedGemsClient } from '@/components/places/FeaturedGemsClient'
-import { getPlacesForCards, getCategories } from '@/lib/queries/places'
+import { getPlacesForCards, getCategories, getDistricts } from '@/lib/queries/places'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { CategoryIcon } from '@/components/icons/CategoryIcon'
 import { WelcomeBanner } from '@/components/home/WelcomeBanner'
@@ -57,11 +57,12 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
   }
 
   // Fetch real data — server-side, cached
-  const [categories, newestPlaces, topRatedPlaces, mostHiddenPlaces] = await Promise.all([
+  const [categories, districts, newestPlaces, topRatedPlaces, mostHiddenPlaces] = await Promise.all([
     getCategories(),
-    getPlacesForCards({ sort: 'newest', limit: 3 }),
-    getPlacesForCards({ sort: 'highest_rated', limit: 3 }),
-    getPlacesForCards({ sort: 'most_hidden', limit: 3 }),
+    getDistricts(),
+    getPlacesForCards({ sort: 'newest', limit: 6, userId: user?.id ?? null }),
+    getPlacesForCards({ sort: 'highest_rated', limit: 6, userId: user?.id ?? null }),
+    getPlacesForCards({ sort: 'most_hidden', limit: 6, userId: user?.id ?? null }),
   ])
 
   return (
@@ -185,6 +186,7 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
             sortedMostHidden={mostHiddenPlaces}
             currentUserId={user?.id ?? null}
             categories={categories}
+            districts={districts}
           />
 
           <div className="mt-8 flex justify-center md:hidden">

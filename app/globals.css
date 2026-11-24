@@ -186,10 +186,14 @@
   /* Font */
   --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Motion Curves (Emil Kowalski / Apple UI discipline) */
+  --ease-ui-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-ui-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Hero Logo Motion & Ambient Lighting
+   Hero Logo Motion & Micro-Interaction Feedback
    ──────────────────────────────────────────────────────────────────────────── */
 @keyframes hero-logo-float {
   0%, 100% {
@@ -211,6 +215,32 @@
   }
 }
 
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(1.26);
+  }
+  70% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ring-burst {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
+
 .animate-hero-logo {
   animation: hero-logo-float 6s ease-in-out infinite;
   will-change: transform;
@@ -221,9 +251,55 @@
   will-change: transform, opacity;
 }
 
+.animate-heart-pop {
+  animation: heart-pop 280ms var(--ease-ui-out) forwards;
+}
+
+.animate-ring-burst {
+  animation: ring-burst 420ms var(--ease-ui-out) forwards;
+}
+
+/* Gate card image hover zoom strictly to fine pointer devices so touch taps never stick */
+@media (hover: hover) and (pointer: fine) {
+  .gem-card:hover .gem-card-image {
+    transform: scale(1.05);
+  }
+  .gem-card:hover {
+    transform: translateY(-3px);
+  }
+}
+
+/* Smooth GPU-friendly grid expansion for card quick details */
+.gem-expand-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 260ms var(--ease-ui-out),
+    opacity 200ms var(--ease-ui-out);
+}
+
+.gem-expand-grid[data-open='true'] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.gem-expand-inner {
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-logo,
-  .animate-hero-glow {
+  .animate-hero-glow,
+  .animate-heart-pop,
+  .animate-ring-burst {
     animation: none !important;
+  }
+  .gem-card:hover,
+  .gem-card:hover .gem-card-image {
+    transform: none !important;
+  }
+  .gem-expand-grid {
+    transition: opacity 150ms ease !important;
   }
 }

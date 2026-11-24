@@ -6,13 +6,10 @@ import {
   Star,
   Lock,
   ArrowLeft,
-  Map,
-  ExternalLink,
   Tag as TagIcon,
-  User,
-  Calendar,
   CheckCircle2,
   Clock,
+  Map as MapIcon,
 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getPlaceBySlug, getCategories, getDistricts } from '@/lib/queries/places'
@@ -22,21 +19,20 @@ import { PlaceGallery } from '@/components/places/PlaceGallery'
 import { PlaceMetadata } from '@/components/places/PlaceMetadata'
 import { PlaceSocialMediaSources } from '@/components/places/PlaceSocialMediaSources'
 import { PlaceEditTrigger } from '@/components/places/PlaceEditTrigger'
+import { PlaceLocationMap } from '@/components/places/PlaceLocationMap'
+import { PlaceReviewsSection } from '@/components/places/PlaceReviewsSection'
+import { HeartReactButton, SaveBookmarkButton } from '@/components/places/PlaceActionButtons'
+import { GoogleMapsIcon } from '@/components/places/GoogleMapsIcon'
+import { CategoryIcon } from '@/components/icons/CategoryIcon'
 import { parseMediaSources } from '@/lib/utils/media'
-import { SaveButton } from '@/components/places/SaveButton'
+import { buildGoogleMapsDirectionsUrl } from '@/lib/utils/geo'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
 interface PlaceDetailsPageProps {
   params: Promise<{ slug: string }>
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SEO metadata — dynamically generated per place for rich social previews
-// ─────────────────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }: PlaceDetailsPageProps): Promise<Metadata> {
   const { slug } = await params
   const place = await getPlaceBySlug(slug)
@@ -67,21 +63,6 @@ export async function generateMetadata({ params }: PlaceDetailsPageProps): Promi
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-function getDirectionsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex" aria-label={`Rating: ${rating} out of 5`}>
@@ -90,7 +71,7 @@ function StarRating({ rating }: { rating: number }) {
           key={star}
           className={`h-4 w-4 ${
             star <= Math.round(rating)
-              ? 'fill-primary text-primary'
+              ? 'fill-amber-500 text-amber-500'
               : 'text-muted-foreground/30'
           }`}
         />
@@ -99,28 +80,17 @@ function StarRating({ rating }: { rating: number }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Place Details Page — Server Component
-// All data fetching happens server-side; only SaveButton + PlaceGallery are
-// client components (minimal JS sent to browser).
-// ─────────────────────────────────────────────────────────────────────────────
 export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps) {
   const { slug } = await params
 
-  // Fetch place data + Supabase client in parallel
-  const [place, supabase] = await Promise.all([
-    getPlaceBySlug(slug),
-    createSupabaseServerClient(),
-  ])
-
-  if (!place) notFound()
-
-  // Verify user session server-side (uses getUser — validates JWT with Supabase)
+  const supabase = await createSupabaseServerClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Verify admin session
+  const place = await getPlaceBySlug(slug, user?.id ?? null)
+  if (!place) notFound()
+
   const cookieStore = await cookies()
   const adminCookie = cookieStore.get(ADMIN_COOKIE_NAME)?.value
   const { valid: isAdmin } = await verifyAdminSessionToken(adminCookie)
@@ -131,7 +101,6 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
     ? await Promise.all([getCategories(), getDistricts()])
     : [[], []]
 
-  // Check if authenticated user has saved this place
   let initialSaved = false
   if (user) {
     const { data } = await supabase
@@ -147,12 +116,17 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
   const hasTags = place.place_tags && place.place_tags.length > 0
   const isApproved = place.status === 'APPROVED'
   const isPending = place.status === 'PENDING'
+  const hasCoords =
+    place.latitude !== null &&
+    place.longitude !== null &&
+    Number.isFinite(place.latitude) &&
+    Number.isFinite(place.longitude)
 
   return (
     <div className="min-h-screen bg-background">
       {/* ── Back navigation bar ──────────────────────────────────────────── */}
       <div className="border-b bg-background/95 backdrop-blur sticky top-16 z-30">
-        <div className="container mx-auto max-w-7xl px-4 py-3">
+        <div className="container mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
           <Link
             href="/explore"
             className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -160,24 +134,43 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
             <ArrowLeft className="h-4 w-4" />
             Back to Explore
           </Link>
+
+          <div className="flex items-center gap-2">
+            <HeartReactButton
+              placeId={place.id}
+              placeSlug={place.slug}
+              initialCount={place.heart_count ?? 0}
+              initialLiked={Boolean(place.is_hearted)}
+              userId={user?.id ?? null}
+              size="sm"
+            />
+            <SaveBookmarkButton
+              placeId={place.id}
+              placeName={place.name}
+              placeSlug={place.slug}
+              initialSaved={initialSaved}
+              userId={user?.id ?? null}
+              size="sm"
+              showLabel
+            />
+          </div>
         </div>
       </div>
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10">
-
           {/* ═══════════════════════════════════════════════════════
               LEFT — Main content column
           ═══════════════════════════════════════════════════════ */}
           <div className="space-y-8 min-w-0">
-
-            {/* Pending Community Notice */}
             {isPending && (
               <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5 flex items-start gap-3.5 text-amber-900 dark:text-amber-200">
                 <Clock className="h-5 w-5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
                 <div className="space-y-1 text-xs sm:text-sm">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-foreground">Community Submission · Under Review</span>
+                    <span className="font-bold text-foreground">
+                      Community Submission · Under Review
+                    </span>
                     <span className="text-[10px] bg-amber-500/20 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/30">
                       Checking Details
                     </span>
@@ -194,19 +187,18 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
 
             {/* Title block */}
             <div className="space-y-3">
-              {/* Status Badge & Contributor Edit Trigger Bar */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   {isApproved && (
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 shadow-2xs">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                       <span>Verified Place</span>
                     </div>
                   )}
                   {isPending && (
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 shadow-2xs">
-                      <Clock className="h-3.5 w-3.5 text-amber-500 animate-pulse" />
-                      <span>Community Submission · Under Review</span>
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+                      <Clock className="h-3.5 w-3.5 text-amber-500" />
+                      <span>New Community Spot</span>
                     </div>
                   )}
                 </div>
@@ -227,12 +219,14 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                   <>
                     <Link
                       href={`/explore?category=${place.categories.slug}`}
-                      className="hover:text-primary transition-colors font-medium"
+                      className="inline-flex items-center gap-1.5 hover:text-primary transition-colors font-medium"
                     >
-                      {place.categories.icon && (
-                        <span className="mr-1">{place.categories.icon}</span>
-                      )}
-                      {place.categories.name}
+                      <CategoryIcon
+                        name={place.categories.name}
+                        icon={place.categories.icon}
+                        className="h-3.5 w-3.5 text-primary"
+                      />
+                      <span>{place.categories.name}</span>
                     </Link>
                     <span aria-hidden="true">·</span>
                   </>
@@ -242,8 +236,8 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                     href={`/explore?district=${place.districts.slug}`}
                     className="hover:text-primary transition-colors flex items-center gap-1"
                   >
-                    <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                    {place.districts.name}
+                    <MapPin className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                    <span>{place.districts.name}</span>
                     {place.districts.provinces && (
                       <span className="text-muted-foreground/60">
                         , {place.districts.provinces.name}
@@ -257,8 +251,8 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                 {place.name}
               </h1>
 
-              {/* Rating + Hidden Score */}
-              <div className="flex flex-wrap items-center gap-4">
+              {/* Rating + Hidden Score + Heart React */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
                 {hasRating ? (
                   <div className="flex items-center gap-2">
                     <StarRating rating={place.average_rating} />
@@ -267,22 +261,32 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                     </span>
                     <span className="text-muted-foreground text-sm">
                       ({place.review_count}{' '}
-                      {place.review_count === 1 ? 'review' : 'reviews'})
+                      {place.review_count === 1 ? 'rating' : 'ratings'})
                     </span>
                   </div>
                 ) : (
-                  <span className="text-sm text-muted-foreground italic">No reviews yet</span>
+                  <span className="text-sm text-muted-foreground italic">No ratings yet</span>
                 )}
 
-                <div className="flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full text-sm font-semibold text-primary">
+                <div className="flex items-center gap-1.5 bg-primary/8 border border-primary/20 px-3 py-1.5 rounded-full text-sm font-semibold text-primary">
                   <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{place.hidden_score} Hidden Score</span>
                 </div>
+
+                <HeartReactButton
+                  placeId={place.id}
+                  placeSlug={place.slug}
+                  initialCount={place.heart_count ?? 0}
+                  initialLiked={Boolean(place.is_hearted)}
+                  userId={user?.id ?? null}
+                  size="sm"
+                  showLabel
+                />
               </div>
 
               {/* Tags */}
               {hasTags && (
-                <div className="flex flex-wrap items-start gap-2">
+                <div className="flex flex-wrap items-start gap-2 pt-1">
                   <TagIcon
                     className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0"
                     aria-label="Tags:"
@@ -340,137 +344,92 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
 
             <Separator />
 
-            {/* Map section */}
-            <section className="space-y-4">
-              <h2 className="text-xl font-bold">Location</h2>
-              <div className="relative aspect-[16/7] overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border flex items-center justify-center">
-                <div className="text-center space-y-3 text-muted-foreground">
-                  <Map className="h-12 w-12 mx-auto opacity-40" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold">Coordinates Saved</p>
-                    <p className="text-sm opacity-70">Use the directions link on the right to open Google Maps</p>
-                  </div>
-                </div>
-                {place.districts && (
-                  <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg text-sm font-semibold shadow border">
-                    <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-                    {place.districts.name}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {place.latitude !== null && place.longitude !== null && (
-                  <a
-                    href={getDirectionsUrl(place.latitude, place.longitude)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    Get Directions (Google Maps)
-                  </a>
-                )}
-                {place.map_url && (
-                  <a
-                    href={place.map_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border hover:bg-muted font-semibold text-sm transition-colors"
-                  >
-                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    View on Map
-                  </a>
-                )}
-              </div>
-            </section>
+            {/* Live Pinned Location Map & Google Maps Directions */}
+            <PlaceLocationMap
+              placeName={place.name}
+              placeSlug={place.slug}
+              latitude={place.latitude}
+              longitude={place.longitude}
+              districtName={place.districts?.name ?? null}
+              landmarkText={place.map_url}
+            />
 
             <Separator />
 
-            {/* Reviews */}
-            <section className="space-y-5" aria-label="Reviews">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h2 className="text-xl font-bold">
-                  Reviews
-                  {place.review_count > 0 && (
-                    <span className="ml-2 text-base font-normal text-muted-foreground">
-                      ({place.review_count})
-                    </span>
-                  )}
-                </h2>
-                <span className="text-xs text-muted-foreground border px-3 py-1 rounded-full">
-                  Submission coming in Phase 9
-                </span>
-              </div>
-
-              {place.reviews.length === 0 ? (
-                <div className="flex flex-col items-center py-12 text-center border rounded-2xl bg-muted/30">
-                  <Star className="h-12 w-12 mb-4 text-muted-foreground/30" aria-hidden="true" />
-                  <p className="font-semibold mb-1">No reviews yet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Be the first to review this place!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {place.reviews.map((review) => (
-                    <article
-                      key={review.id}
-                      className="p-5 rounded-2xl border bg-card space-y-3"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className="flex-shrink-0 h-9 w-9 rounded-full bg-muted flex items-center justify-center text-foreground font-bold text-sm"
-                          aria-hidden="true"
-                        >
-                          {review.profiles?.full_name?.[0]?.toUpperCase() ?? (
-                            <User className="h-4 w-4" />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="font-semibold text-sm">
-                              {review.profiles?.full_name ?? 'Anonymous'}
-                            </p>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                              <time dateTime={review.created_at}>
-                                {formatDate(review.created_at)}
-                              </time>
-                            </div>
-                          </div>
-                          <StarRating rating={review.rating} />
-                        </div>
-                      </div>
-                      {review.comment && (
-                        <p className="text-sm text-muted-foreground leading-relaxed pl-12">
-                          {review.comment}
-                        </p>
-                      )}
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
+            {/* Live Ratings & Comments */}
+            <PlaceReviewsSection
+              placeId={place.id}
+              placeSlug={place.slug}
+              initialReviews={place.reviews}
+              initialAverageRating={place.average_rating}
+              initialReviewCount={place.review_count}
+              currentUserId={user?.id ?? null}
+              isAdmin={isAdmin}
+            />
           </div>
 
           {/* ═══════════════════════════════════════════════════════
               RIGHT — Sticky sidebar
           ═══════════════════════════════════════════════════════ */}
           <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start" aria-label="Place actions">
+            {/* React & Save Card */}
+            <div className="p-5 rounded-2xl border border-border bg-card space-y-3">
+              <h3 className="font-bold text-base">React &amp; Save</h3>
+              <div className="grid grid-cols-2 gap-2.5">
+                <HeartReactButton
+                  placeId={place.id}
+                  placeSlug={place.slug}
+                  initialCount={place.heart_count ?? 0}
+                  initialLiked={Boolean(place.is_hearted)}
+                  userId={user?.id ?? null}
+                  size="md"
+                  showLabel
+                  className="w-full rounded-xl"
+                />
+                <SaveBookmarkButton
+                  placeId={place.id}
+                  placeName={place.name}
+                  placeSlug={place.slug}
+                  initialSaved={initialSaved}
+                  userId={user?.id ?? null}
+                  size="md"
+                  showLabel
+                  className="w-full"
+                />
+              </div>
+            </div>
 
-            {/* Save button */}
-            <div className="p-5 rounded-xl border border-border bg-card space-y-4">
-              <h3 className="font-bold text-base">Save this place</h3>
-              <SaveButton
-                placeId={place.id}
-                placeName={place.name}
-                initialSaved={initialSaved}
-                userId={user?.id ?? null}
-              />
+            {/* Map & Directions Sidebar Card */}
+            <div className="p-5 rounded-2xl border border-border bg-card space-y-3">
+              <h3 className="font-bold text-base">Get There</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Open the exact pinned spot on our interactive map or get turn-by-turn directions in Google Maps.
+              </p>
+              <div className="space-y-2">
+                <Link
+                  href={`/explore?view=map&place=${encodeURIComponent(place.slug)}`}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background hover:border-primary hover:text-primary text-sm font-semibold transition-colors"
+                >
+                  <MapIcon className="h-4 w-4 text-primary" />
+                  <span>View on Map</span>
+                </Link>
+
+                {hasCoords && (
+                  <a
+                    href={buildGoogleMapsDirectionsUrl(place.latitude!, place.longitude!)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold transition-[transform,background-color] active:scale-[0.98]"
+                  >
+                    <GoogleMapsIcon className="h-4 w-4 shrink-0" />
+                    <span>Get Directions</span>
+                  </a>
+                )}
+              </div>
             </div>
 
             {/* Quick info */}
-            <div className="p-5 rounded-xl border border-border bg-card space-y-4">
+            <div className="p-5 rounded-2xl border border-border bg-card space-y-4">
               <h3 className="font-bold text-base">Quick Info</h3>
               <dl className="space-y-3 text-sm">
                 {place.categories && (
@@ -479,14 +438,14 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                     <dd>
                       <Link
                         href={`/explore?category=${place.categories.slug}`}
-                        className="font-medium hover:text-primary transition-colors"
+                        className="inline-flex items-center gap-1.5 font-medium hover:text-primary transition-colors"
                       >
-                        {place.categories.icon && (
-                          <span className="mr-1" aria-hidden="true">
-                            {place.categories.icon}
-                          </span>
-                        )}
-                        {place.categories.name}
+                        <CategoryIcon
+                          name={place.categories.name}
+                          icon={place.categories.icon}
+                          className="h-3.5 w-3.5 text-primary"
+                        />
+                        <span>{place.categories.name}</span>
                       </Link>
                     </dd>
                   </div>
@@ -522,7 +481,7 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                     <dt className="text-muted-foreground">Rating</dt>
                     <dd className="font-bold flex items-center gap-1">
                       <Star
-                        className="h-4 w-4 fill-primary text-primary"
+                        className="h-4 w-4 fill-amber-500 text-amber-500"
                         aria-hidden="true"
                       />
                       {place.average_rating.toFixed(1)}
@@ -533,10 +492,10 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
             </div>
 
             {/* Share */}
-            <div className="p-5 rounded-xl border border-border bg-card space-y-3">
+            <div className="p-5 rounded-2xl border border-border bg-card space-y-3">
               <h3 className="font-bold text-base">Share</h3>
               <p className="text-xs text-muted-foreground">
-                Share this hidden gem with friends who love authentic Nepal.
+                Share this spot with friends who enjoy quiet places in Nepal.
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <a
@@ -551,7 +510,7 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                 </a>
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    `Discovered ${place.name} on HiddenGems Nepal!`
+                    `Found ${place.name} on HiddenGems Nepal!`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -561,7 +520,6 @@ export default async function PlaceDetailsPage({ params }: PlaceDetailsPageProps
                 </a>
               </div>
             </div>
-
           </aside>
         </div>
       </div>

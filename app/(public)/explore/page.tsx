@@ -28,6 +28,8 @@ interface ExplorePageProps {
     category?: string
     district?: string
     sort?: string
+    view?: string
+    place?: string
   }>
 }
 
@@ -65,6 +67,8 @@ async function PlacesResults({
   isAdmin,
   categories,
   districts,
+  initialViewMode,
+  initialSelectedSlug,
 }: {
   search?: string
   categorySlug?: string
@@ -74,6 +78,8 @@ async function PlacesResults({
   isAdmin?: boolean
   categories?: Category[]
   districts?: District[]
+  initialViewMode?: 'grid' | 'map'
+  initialSelectedSlug?: string
 }) {
   const [places, mapPins] = await Promise.all([
     getPlacesForCards({
@@ -82,6 +88,7 @@ async function PlacesResults({
       districtSlug,
       sort,
       limit: 24,
+      userId: currentUserId ?? null,
     }),
     getPlacesForMap({
       search,
@@ -92,12 +99,15 @@ async function PlacesResults({
 
   return (
     <ExploreViewSwitcher
+      key={`${initialViewMode ?? 'grid'}-${initialSelectedSlug ?? ''}`}
       places={places}
       mapPins={mapPins}
       currentUserId={currentUserId}
       isAdmin={isAdmin}
       categories={categories}
       districts={districts}
+      initialViewMode={initialViewMode}
+      initialSelectedSlug={initialSelectedSlug}
     />
   )
 }
@@ -108,6 +118,8 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   const categorySlug = params.category || undefined
   const districtSlug = params.district || undefined
   const sort: SortOption = isValidSort(params.sort) ? params.sort : 'newest'
+  const initialViewMode: 'grid' | 'map' = params.view === 'map' ? 'map' : 'grid'
+  const initialSelectedSlug = params.place || undefined
 
   // Fetch auth session & admin credentials
   const supabase = await createSupabaseServerClient()
@@ -272,6 +284,8 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             isAdmin={isAdmin}
             categories={categories}
             districts={districts}
+            initialViewMode={initialViewMode}
+            initialSelectedSlug={initialSelectedSlug}
           />
         </Suspense>
 

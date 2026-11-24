@@ -13,6 +13,8 @@ interface ExploreViewSwitcherProps {
   isAdmin?: boolean;
   categories?: Category[];
   districts?: District[];
+  initialViewMode?: 'grid' | 'map';
+  initialSelectedSlug?: string;
 }
 
 export function ExploreViewSwitcher({
@@ -22,9 +24,11 @@ export function ExploreViewSwitcher({
   isAdmin = false,
   categories = [],
   districts = [],
+  initialViewMode = 'grid',
+  initialSelectedSlug,
 }: ExploreViewSwitcherProps) {
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  const [selectedSlug, setSelectedSlug] = useState<string | undefined>();
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>(initialViewMode);
+  const [selectedSlug, setSelectedSlug] = useState<string | undefined>(initialSelectedSlug);
 
   const pendingCount = places.filter((p) => p.status === 'PENDING').length;
 
@@ -34,7 +38,7 @@ export function ExploreViewSwitcher({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 flex-wrap">
           <p className="text-sm text-muted-foreground font-medium">
-            Showing <span className="font-bold text-foreground">{places.length}</span> hidden destinations
+            Showing <span className="font-bold text-foreground">{places.length}</span> quiet spots
           </p>
           {pendingCount > 0 && (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
@@ -48,7 +52,7 @@ export function ExploreViewSwitcher({
           <button
             type="button"
             onClick={() => setViewMode('grid')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
               viewMode === 'grid'
                 ? 'bg-background text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
@@ -61,7 +65,7 @@ export function ExploreViewSwitcher({
           <button
             type="button"
             onClick={() => setViewMode('map')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
               viewMode === 'map'
                 ? 'bg-background text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
@@ -80,11 +84,11 @@ export function ExploreViewSwitcher({
             <MapIcon className="h-12 w-12 text-muted-foreground/30 mb-4" />
             <h3 className="text-lg font-bold">No places found</h3>
             <p className="text-sm text-muted-foreground max-w-sm mt-1">
-              Try adjusting your search or category filters to discover more hidden spots.
+              Try adjusting your search or category filters to discover more spots.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
             {places.map((place) => (
               <PlaceCard
                 key={place.slug}

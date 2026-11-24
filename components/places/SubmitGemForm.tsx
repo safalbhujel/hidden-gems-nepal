@@ -18,9 +18,10 @@ import {
   Globe,
   Video,
 } from 'lucide-react';
-import type { Category, District } from '@/lib/types/places';
+import type { Category, District, PlaceCardData } from '@/lib/types/places';
 import { LocationPickerMap, type Coordinates, type LocationDetails } from '@/components/maps/LocationPickerMap';
 import { submitPlace } from '@/app/submit/actions';
+import { PlaceCard } from '@/components/places/PlaceCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,6 +100,7 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submittedPlace, setSubmittedPlace] = useState<PlaceCardData | null>(null);
 
   // ── Images State ──────────────────────────────────────────────────────────
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -280,28 +282,70 @@ export function SubmitGemForm({ categories, districts }: SubmitGemFormProps) {
     if (res.error) {
       setErrorMessage(res.error);
     } else if (res.success) {
+      setSubmittedPlace(res.submittedPlace ?? null);
       setIsSuccess(true);
     }
   };
 
   if (isSuccess) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-card p-10 text-center shadow-md">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
-          <CheckCircle2 className="h-9 w-9" />
+      <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 sm:p-10 text-center shadow-sm">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+            <CheckCircle2 className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+            Your place is live in the community feed!
+          </h2>
+          <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
+            Travelers can now see your card, react with a heart, save it, leave comments, and get Google Maps directions right to your pinned location.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {submittedPlace && (
+              <Button
+                onClick={() => router.push(`/places/${submittedPlace.slug}`)}
+                variant="default"
+                className="font-semibold"
+              >
+                Open Full Guide
+              </Button>
+            )}
+            <Button onClick={() => router.push('/explore')} variant="outline">
+              Browse Explore Feed
+            </Button>
+            <Button
+              onClick={() => {
+                setIsSuccess(false);
+                setSubmittedPlace(null);
+              }}
+              variant="ghost"
+            >
+              Share Another Place
+            </Button>
+          </div>
         </div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Thank you! Place submitted</h2>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
-          Thank you for sharing this place. Our local team will check the details and publish it soon so other travelers can visit.
-        </p>
-        <div className="mt-6 flex gap-3">
-          <Button onClick={() => router.push('/explore')} variant="default">
-            Back to Explore
-          </Button>
-          <Button onClick={() => setIsSuccess(false)} variant="outline">
-            Share Another Place
-          </Button>
-        </div>
+
+        {submittedPlace && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Live Display Card Preview
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                Try Quick Peek, View on Map, or Google Maps Directions below
+              </span>
+            </div>
+            <div className="max-w-md mx-auto">
+              <PlaceCard
+                place={submittedPlace}
+                currentUserId={submittedPlace.submitted_by}
+                categories={categories}
+                districts={districts}
+                defaultExpanded
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
