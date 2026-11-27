@@ -7,7 +7,7 @@ import { AdminLayoutClient } from '@/components/admin/AdminLayoutClient';
 import { getPendingGems } from '@/lib/admin/queries';
 
 export const metadata: Metadata = {
-  title: 'Admin Console | HiddenGems Nepal',
+  title: 'HiddenGems Nepal | Admin Console',
   description: 'Advanced administration, content moderation, and geospatial management.',
 };
 

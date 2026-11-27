@@ -9,57 +9,29 @@ import { Button } from '@/components/ui/button';
 
 interface WelcomeBannerProps {
   initialUsername?: string | null;
+  initialAvatarUrl?: string | null;
   searchParamUser?: string | null;
   isWelcomeRedirect?: boolean;
 }
 
 function WelcomeBannerInner({
   initialUsername,
+  initialAvatarUrl,
   searchParamUser,
   isWelcomeRedirect,
 }: WelcomeBannerProps) {
   const searchParams = useSearchParams();
 
-  const [username, setUsername] = useState<string | null>(() => {
-    const fromParam = searchParams?.get('user') || searchParamUser;
-    if (fromParam) return fromParam;
-    if (initialUsername) return initialUsername;
-    if (typeof window !== 'undefined') {
-      try {
-        const cached =
-          sessionStorage.getItem('hgn_cached_user') ||
-          localStorage.getItem('hgn_cached_user');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.username) return parsed.username;
-        }
-      } catch {}
-    }
-    return null;
-  });
-
-  const [avatarUrl, setAvatarUrl] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached =
-          sessionStorage.getItem('hgn_cached_user') ||
-          localStorage.getItem('hgn_cached_user');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.avatarUrl) return parsed.avatarUrl;
-        }
-      } catch {}
-    }
-    return '/avatars/snow-leopard.svg';
-  });
-
-  const [isCelebrationVisible, setIsCelebrationVisible] = useState<boolean>(() => {
-    return Boolean(
-      isWelcomeRedirect ||
-        searchParams?.get('welcome') === '1' ||
-        searchParams?.get('welcome') === 'true'
-    );
-  });
+  // Strictly deterministic initial state from SSR props so server HTML matches client hydration 100%
+  const [username, setUsername] = useState<string | null>(
+    () => searchParamUser || initialUsername || null
+  );
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    () => initialAvatarUrl || '/avatars/snow-leopard.svg'
+  );
+  const [isCelebrationVisible, setIsCelebrationVisible] = useState<boolean>(() =>
+    Boolean(isWelcomeRedirect)
+  );
 
   useEffect(() => {
     // 1. Clean up URL search parameters cleanly without page refresh
@@ -77,7 +49,7 @@ function WelcomeBannerInner({
       );
     }
 
-    // 2. Subscribe to realtime auth changes from client login/signup
+    // 2. Subscribe to realtime auth changes from client login/signup or profile updates
     const handleAuthChange = (event: Event) => {
       const customEvent = event as CustomEvent<{
         avatarUrl?: string;
@@ -95,9 +67,21 @@ function WelcomeBannerInner({
       }
     };
 
+    const handleProfileUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        avatarUrl?: string;
+        username?: string;
+      }>;
+      const detail = customEvent.detail;
+      if (detail?.username) setUsername(detail.username);
+      if (detail?.avatarUrl) setAvatarUrl(detail.avatarUrl);
+    };
+
     window.addEventListener('hgn:auth-state-changed', handleAuthChange);
+    window.addEventListener('hgn:profile-updated', handleProfileUpdate);
     return () => {
       window.removeEventListener('hgn:auth-state-changed', handleAuthChange);
+      window.removeEventListener('hgn:profile-updated', handleProfileUpdate);
     };
   }, [searchParams]);
 

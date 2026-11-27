@@ -5,7 +5,7 @@ import { SubmitGemForm } from '@/components/places/SubmitGemForm';
 import { Compass } from 'lucide-react';
 
 export const metadata = {
-  title: 'Share a Place | HiddenGems Nepal',
+  title: 'HiddenGems Nepal | Share a Place',
   description:
     'Share a quiet, special place in Nepal with other travelers. Our local team reviews every spot before publishing.',
 };

@@ -4,7 +4,7 @@ import { getAdminCategories } from '@/lib/admin/queries';
 import { CategoriesClient } from '@/components/admin/CategoriesClient';
 
 export const metadata = {
-  title: 'Categories & Taxonomy | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Categories',
 };
 
 export default async function AdminCategoriesPage() {

@@ -17,7 +17,7 @@ import type { SortOption, Category, District } from '@/lib/types/places'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const metadata = {
-  title: 'Explore Places | HiddenGems Nepal',
+  title: 'HiddenGems Nepal | Explore Places',
   description:
     'Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots across all 77 districts of Nepal.',
 }

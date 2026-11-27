@@ -4,7 +4,7 @@ import { getAdminGems } from '@/lib/admin/queries';
 import { GemsManagementClient } from '@/components/admin/GemsManagementClient';
 
 export const metadata = {
-  title: 'Destinations & Gems Management | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Manage Gems',
 };
 
 export default async function AdminGemsPage() {

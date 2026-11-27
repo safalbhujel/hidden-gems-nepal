@@ -4,7 +4,7 @@ import { getAdminReviews } from '@/lib/admin/queries';
 import { ReviewsClient } from '@/components/admin/ReviewsClient';
 
 export const metadata = {
-  title: 'Reviews Moderation | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Reviews',
 };
 
 export default async function AdminReviewsPage() {

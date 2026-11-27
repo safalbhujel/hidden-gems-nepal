@@ -4,7 +4,7 @@ import { getAdminStats } from '@/lib/admin/queries';
 import { ActivityLogClient } from '@/components/admin/ActivityLogClient';
 
 export const metadata = {
-  title: 'Audit Trail & Activity Log | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Activity Log',
 };
 
 export default async function AdminActivityPage() {

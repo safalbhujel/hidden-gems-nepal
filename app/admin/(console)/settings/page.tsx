@@ -3,7 +3,7 @@
 import { AdminSettingsClient } from '@/components/admin/AdminSettingsClient';
 
 export const metadata = {
-  title: 'Platform Configuration & Settings | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Admin Settings',
 };
 
 export default function AdminSettingsPage() {

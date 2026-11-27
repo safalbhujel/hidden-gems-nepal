@@ -10,14 +10,13 @@ import { SmartSearchBar } from '@/components/search/SmartSearchBar'
 import { FeaturedGemsClient } from '@/components/places/FeaturedGemsClient'
 import { getPlacesForCards, getCategories, getDistricts } from '@/lib/queries/places'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { resolveUserAvatar } from '@/lib/constants/avatars'
 import { CategoryIcon } from '@/components/icons/CategoryIcon'
 import { WelcomeBanner } from '@/components/home/WelcomeBanner'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SEO
-// ─────────────────────────────────────────────────────────────────────────────
+// SEO 
 export const metadata = {
-  title: 'HiddenGems Nepal — Discover the Nepal Everyone Misses',
+  title: 'HiddenGems Nepal',
   description:
     'Find quiet waterfalls, small tea shops, hilltop viewpoints, and peaceful spots across all 77 districts of Nepal. Shared by locals who walk these trails every day.',
 }
@@ -46,14 +45,16 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
   } = await supabase.auth.getUser()
 
   let username: string | null = null
+  let avatarUrl: string | null = null
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('username')
+      .select('username, avatar_url')
       .eq('id', user.id)
       .maybeSingle()
     username =
       profile?.username || user.user_metadata?.username || user.email?.split('@')[0] || null
+    avatarUrl = resolveUserAvatar(profile?.avatar_url, user.user_metadata).avatarUrl
   }
 
   // Fetch real data — server-side, cached
@@ -113,6 +114,7 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
 
           <WelcomeBanner
             initialUsername={username}
+            initialAvatarUrl={avatarUrl}
             searchParamUser={resolvedParams?.user}
             isWelcomeRedirect={Boolean(resolvedParams?.welcome)}
           />

@@ -38,13 +38,13 @@ export async function generateMetadata({ params }: PlaceDetailsPageProps): Promi
   const place = await getPlaceBySlug(slug)
 
   if (!place) {
-    return { title: 'Place Not Found | HiddenGems Nepal' }
+    return { title: 'HiddenGems Nepal | Place Not Found' }
   }
 
   const coverImage = place.place_images[0]?.image_url
 
   return {
-    title: `${place.name} | HiddenGems Nepal`,
+    title: `HiddenGems Nepal | ${place.name}`,
     description: place.description.slice(0, 160),
     openGraph: {
       title: place.name,

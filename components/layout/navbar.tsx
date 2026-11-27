@@ -17,31 +17,21 @@ const navLinks = [
   { href: '/submit', label: 'Share a Place', icon: Gem },
 ];
 
-export function Navbar() {
+export interface NavbarUserProfile {
+  username: string;
+  avatarUrl: string;
+}
+
+interface NavbarProps {
+  initialUserProfile?: NavbarUserProfile | null;
+}
+
+export function Navbar({ initialUserProfile = null }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [userProfile, setUserProfile] = useState<{
-    username: string;
-    avatarUrl: string;
-  } | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached =
-          sessionStorage.getItem('hgn_cached_user') ||
-          localStorage.getItem('hgn_cached_user');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.username) {
-            return {
-              username: parsed.username,
-              avatarUrl: parsed.avatarUrl || '/avatars/snow-leopard.svg',
-            };
-          }
-        }
-      } catch {}
-    }
-    return null;
-  });
+  const [userProfile, setUserProfile] = useState<NavbarUserProfile | null>(
+    initialUserProfile
+  );
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();

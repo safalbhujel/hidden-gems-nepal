@@ -3,7 +3,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin Console | HiddenGems Nepal',
+  title: 'HiddenGems Nepal | Admin Console',
   description: 'Administrative terminal and geospatial moderation.',
 };
 

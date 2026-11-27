@@ -4,7 +4,7 @@ import { getAdminStats } from '@/lib/admin/queries';
 import { DashboardClient } from '@/components/admin/DashboardClient';
 
 export const metadata = {
-  title: 'Dashboard Overview | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Admin Dashboard',
 };
 
 export default async function AdminDashboardPage() {

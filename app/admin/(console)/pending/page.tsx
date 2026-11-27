@@ -4,7 +4,7 @@ import { getPendingGems } from '@/lib/admin/queries';
 import { PendingModerationClient } from '@/components/admin/PendingModerationClient';
 
 export const metadata = {
-  title: 'Pending Approvals Queue | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Pending Review',
 };
 
 export default async function AdminPendingPage() {

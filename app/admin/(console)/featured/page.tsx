@@ -4,7 +4,7 @@ import { getAdminGems } from '@/lib/admin/queries';
 import { FeaturedGemsClient } from '@/components/admin/FeaturedGemsClient';
 
 export const metadata = {
-  title: 'Homepage Spotlight | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Featured Spots',
 };
 
 export default async function AdminFeaturedPage() {

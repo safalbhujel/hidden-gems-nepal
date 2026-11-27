@@ -7,7 +7,7 @@ import {
 } from '@/components/profile/ProfileDashboard';
 
 export const metadata = {
-  title: 'Explorer Profile | HiddenGems Nepal',
+  title: 'HiddenGems Nepal | Explorer Profile',
   description: 'Your personal explorer profile, submitted gems, saved wishlist, and Himalayan achievements.',
 };
 

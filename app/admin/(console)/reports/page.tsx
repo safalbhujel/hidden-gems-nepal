@@ -4,7 +4,7 @@ import { getAdminReports } from '@/lib/admin/queries';
 import { ReportsClient } from '@/components/admin/ReportsClient';
 
 export const metadata = {
-  title: 'Community Flagged Reports | HiddenGems Nepal Admin',
+  title: 'HiddenGems Nepal | Reports',
 };
 
 export default async function AdminReportsPage() {
